@@ -150,12 +150,12 @@ class Room3(Habitacion):
     """Sala final — despejada, puerta abajo."""
     def __init__(self):
         super().__init__(3, puertas =[Puerta("d", leads_to=2)])
-    def spawn(self) -> list:                                               # NUEVO
-        cx = (ROOM_LEFT + ROOM_RIGHT)  // 2                               # NUEVO
-        cy = (ROOM_BOTTOM + ROOM_TOP)  // 2                               # NUEVO
-        e = CocodriloEnemigo()                                             # NUEVO
-        e.center_x = cx                                                    # NUEVO
-        e.center_y = cy                                                    # NUEVO
+    def spawn(self) -> list:                                               
+        cx = (WINDOW_WIDTH)  // 2                               
+        cy = (WINDOW_HEIGHT)  // 2                               
+        e = CocodriloEnemigo()                                             
+        e.center_x = cx                                                    
+        e.center_y = cy                                                    
         return [e]
  
  

@@ -578,7 +578,7 @@ class GameView(arcade.View):
         #Hacemos el cálculo para que la pausa esté bien
         self.actualizar_jugador()
     #Mecánica del scroll de ratón
-    def on_mouse_scroll(self, scroll_y):
+    def on_mouse_scroll(self,x,y, scroll_x,scroll_y):
         if scroll_y > 0:
             self.player_sprite.objeto_siguiente()
         elif scroll_y < 0:
