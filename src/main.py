@@ -9,6 +9,7 @@ from pathlib import Path
 
 import arcade
 from personajes import Protagonista
+from Habitaciones import HABITACIONES, OPUESTO
 
 """
 ----------------------------------------------------------------------------
@@ -111,6 +112,7 @@ class GameView(arcade.View):
 
         #Iniciamos las variables de nuestros sprites.
         self.player_sprite = None
+        self.enemy_list = None
         self.wall_list = None
         self.scene = None
 
@@ -124,25 +126,53 @@ class GameView(arcade.View):
         #cámaras
         self.camera = None
         self.gui_camera = None
+        self.pos_camara_x = WINDOW_WIDTH / 2
+        self.pos_camara_y = WINDOW_HEIGHT/ 2
+        self.cam_target_x    = WINDOW_WIDTH  / 2 
+        self.cam_target_y    = WINDOW_HEIGHT / 2
+
+        self.movimiento_camara = False
         
         #Sonidos
         self.gameover_sound = arcade.load_sound(":resources:sounds/gameover1.wav")
 
-    def setup(self):
-        self.background_color = arcade.color.BLACK
+
+    def setup(self, room_id: int = 0, enter_from: str = None):
+        #Para la inicialización veremos en que sala está y de que sala viene
+        self.current_room_id = room_id
+        self.background_color= arcade.color.BLACK
+        self.door_rects = []
+        room = HABITACIONES[room_id]
 
         #Iniciamos las paredes 
         self.wall_list = arcade.SpriteList(use_spatial_hash=True)
-        self.build_room()
+        room.construir_habitacion(self.wall_list)
 
-        #iniciamos el sprite de nuestro personaje
-        self.player_sprite = Protagonista()
-            #Lo inicializamos en e medio de la aplicación
-        self.player_sprite.center_x = WINDOW_WIDTH //2  
-        self.player_sprite.center_y = WINDOW_HEIGHT //2
+        #Creamos las puertas para la detección de estas
+        for door in room.puertas:
+            rect = self.__door_rect(door.side)
+            self.door_rects.append((rect, door.side, door.leads_to))
 
+        if self.player_sprite is None:
+            #iniciamos el sprite de nuestro personaje
+            self.player_sprite = Protagonista()
+        
+        #Será inicializado en la puerta de la sala en la que entra.
+        self.player_sprite.change_y = 0
+        self.player_sprite.change_x = 0
+        sx, sy = self.__spawn_pos(enter_from)        
+        self.player_sprite.center_x =   sx
+        self.player_sprite.center_y = sy
+
+        # Enemigos, se crean en cada sala                         
+        self.enemy_list = arcade.SpriteList()                              
+        for enemigo in room.spawn():
+            self.enemy_list.append(enemigo)
+
+        #inicializamos la escena
         self.scene = arcade.Scene()
         self.scene.add_sprite_list("Walls", sprite_list=self.wall_list)
+        self.scene.add_sprite_list("Enemies", sprite_list=self.enemy_list)
         self.scene.add_sprite("Player", self.player_sprite)
 
         #Inicializamos el motor de físicas
@@ -150,9 +180,88 @@ class GameView(arcade.View):
             self.player_sprite, self.wall_list
         )
 
-        #Inicializamos las cámaras
-        self.camera = arcade.Camera2D()
-        self.gui_camera = arcade.Camera2D()
+        #Cámaras
+        if self.camera is None:
+            #Solo se crearán una vez
+            self.camera = arcade.Camera2D()
+            self.gui_camera = arcade.Camera2D()
+        
+        self.cam_target_x = WINDOW_WIDTH / 2
+        self.cam_target_y = WINDOW_HEIGHT / 2
+
+        #Si venimos de otra sala habrá transición en la cámara
+        if enter_from is not None:
+            self.movimiento_camara = True
+        else:
+            #En el caso de la primera sala
+            self.pos_camara_x = self.cam_target_x
+            self.pos_camara_y = self.cam_target_y
+            self.movimiento_camara = False
+        
+        #Bloquearemos al jugador mientras la cámara se está moviento
+        self.player_locked = enter_from is not None
+
+    def __door_rect(self,side): #Definimos la función como privada ya que solo se va a utilizar aquí
+        margin = 12
+        if side == 'r':
+            cx, cy = WINDOW_WIDTH, WINDOW_HEIGHT//2
+            w, h = margin + TILE_SIZE, DOOR_TILES * TILE_SIZE
+        if side == 'l':
+            cx, cy = 0, WINDOW_HEIGHT//2
+            w, h = margin + TILE_SIZE, DOOR_TILES * TILE_SIZE
+        if side == 'u':
+            cx, cy = WINDOW_WIDTH//2, WINDOW_HEIGHT
+            w, h = DOOR_TILES * TILE_SIZE, margin + TILE_SIZE
+        if side == 'd':
+            cx, cy = WINDOW_WIDTH // 2, 0
+            w, h = DOOR_TILES * TILE_SIZE, margin + TILE_SIZE
+
+        return (cx - w // 2, cy - h //2, w, h)
+    
+    #PAra el spawn del personaje
+    def __spawn_pos(self, enter_form):
+        #Spawnearemos al personaje en una posición dependiendo de por donde venga
+        cx = WINDOW_WIDTH //2
+        cy = WINDOW_HEIGHT // 2
+        margin = TILE_SIZE + 40
+        if enter_form == 'r': return ROOM_RIGHT - margin, cy
+        if enter_form == 'l': return ROOM_LEFT + margin, cy
+        if enter_form == 'u': return cx, ROOM_TOP - margin
+        if enter_form == 'd': return cx, ROOM_BOTTOM + margin
+        return cx, cy
+    
+    def __check_doors(self):
+        #Solo si la cámara no está en transición
+        if self.movimiento_camara:
+            return
+        
+        # Bloqueo de puertas si hay enemigos vivos                         
+        if len(self.enemy_list) > 0:                                       
+            return    
+        
+        px = self.player_sprite.center_x
+        py = self.player_sprite.center_y
+    
+        for(rx, ry, rw, rh), side, leads_to in self.door_rects:
+            if rx <= px <= rx + rw and ry <= py <= ry + rh:
+                self.setup(room_id=leads_to, enter_from = OPUESTO[side])
+                return
+            
+    def __update_camera(self, delta_time):
+        #Desliz suavemente hacia el objetivo
+        self.pos_camara_x += (self.cam_target_x - self.pos_camara_x) * min(1.0, 4.0 * delta_time)
+        self.pos_camara_y += (self.cam_target_y - self.pos_camara_y) * min(1.0, 4.0 * delta_time)
+
+        self.camera.position = arcade.Vec2(self.pos_camara_x, self.pos_camara_y)
+
+        #Comprobamos que la cámara está donde debería
+        dist = abs(self.pos_camara_x - self.cam_target_x) + abs(self.pos_camara_y - self.cam_target_y)
+
+        if dist < 1 :
+            self.pos_camara_x = self.cam_target_x 
+            self.pos_camara_y = self.cam_target_y
+            self.movimiento_camara = False
+            self.player_locked = False 
     
     def build_room(self):
         """Rellena el borde de la pantalla con tiles de pared."""
@@ -178,26 +287,38 @@ class GameView(arcade.View):
             arcade.color.DARK_BROWN
         )
 
+        #Puertas: Habrá un color diferente si están bloqueadas
+        puertas_bloqueadas = len(self.enemy_list) > 0
+        for door in HABITACIONES[self.current_room_id].puertas:
+            self._draw_door_highlight(door.side, puertas_bloqueadas)
+        
         #Dibujamos la escena que tiene las paredes y al personaje
         self.scene.draw()
 
+        #Barras de vida de los enemigos
+        for enemigo in self.enemy_list:
+            self.__draw_enemy_hp(enemigo)
+        
         # HUD (cámara GUI fija)
         self.gui_camera.use()
-       
-        item = self.player_sprite.objeto_equipado()
         
-        """
-        arcade.draw_text(
-            f"Equipado: {item}" if item else "Sin objeto",
-            10, 40, arcade.color.YELLOW, 16 )
-       
-        arcade.draw_text(
-            "WASD / Flechas · ESC = menú",
-            10, 10, arcade.color.WHITE, 13
-        )
-        """
         self.draw_info()
 
+        # Aviso de puertas bloqueadas                                      
+        if puertas_bloqueadas:                                             
+            arcade.draw_text(                                              
+                f"¡Derrota a los enemigos! ({len(self.enemy_list)} restantes)",  
+                WINDOW_WIDTH // 2, WINDOW_HEIGHT - 40,                    
+                (180,30,30), font_size=16,                                 
+                anchor_x="center", bold=True                               
+            )  
+
+    
+    """"
+    --------------------------------------------------------------------------------------
+    ------------------- Para dibujar el inventario y la barra de vida  -------------------
+    --------------------------------------------------------------------------------------
+    """
     def draw_info(self):
         """Dibuja la barra de vida y el inventario en la esquina inferior izquierda."""
         player = self.player_sprite
@@ -352,10 +473,61 @@ class GameView(arcade.View):
                     C_DARK, font_size=7, anchor_x="center", bold=True
                 )
  
+    def _draw_door_highlight(self, side, bloqueada=False):
+        half = DOOR_TILES // 2
+        if side == 'r':
+            x, y = ROOM_RIGHT, WINDOW_HEIGHT // 2 - (half + 0.5) * TILE_SIZE
+            w, h = TILE_SIZE, DOOR_TILES * TILE_SIZE
+        elif side == 'l':
+            x, y = 0, WINDOW_HEIGHT // 2 - (half + 0.5) * TILE_SIZE
+            w, h = TILE_SIZE, DOOR_TILES * TILE_SIZE
+        elif side == 'u':
+            x, y = WINDOW_WIDTH // 2 - (half + 0.5) * TILE_SIZE, ROOM_TOP
+            w, h = DOOR_TILES * TILE_SIZE, TILE_SIZE
+        elif side == 'd':
+            x, y = WINDOW_WIDTH // 2 - (half + 0.5) * TILE_SIZE, 0
+            w, h = DOOR_TILES * TILE_SIZE, TILE_SIZE
+        arcade.draw_lrbt_rectangle_filled(x, x+w, y, y+h, (180, 140,  40) + (180,))
+        arcade.draw_lrbt_rectangle_outline(x, x+w, y, y+h, (212, 160,  48), 2)
 
+        # Rojo si bloqueada, dorado si abierta                            
+        color_relleno  = (140, 20, 20) if bloqueada else (180, 140, 40)   
+        color_borde    = (200, 40, 40) if bloqueada else C_GOLD            
+        arcade.draw_lrbt_rectangle_filled(x, x+w, y, y+h, color_relleno + (180,))
+        arcade.draw_lrbt_rectangle_outline(x, x+w, y, y+h, color_borde, 2)
+
+
+    def __draw_enemy_hp(self, enemigo):                                   
+        """Barra de vida pequeña encima de cada enemigo."""               
+        bar_w = 40                                                        
+        bar_h = 5                                                         
+        x = enemigo.center_x - bar_w // 2                                 
+        y = enemigo.center_y + enemigo.height // 2 + 6                    
+        pct = max(0.0, enemigo.health / 100)                              
+        arcade.draw_lrbt_rectangle_filled(x, x+bar_w, y, y+bar_h, (30, 10, 10))   
+        arcade.draw_lrbt_rectangle_filled(x, x+int(bar_w*pct), y, y+bar_h, (180,30,30))  
+        arcade.draw_lrbt_rectangle_outline(x, x+bar_w, y, y+bar_h, C_GOLD_DIM, 1) 
+    """
+    =======================================================================================================================================
+    =================================================           ON UPDATE               ===================================================
+    =======================================================================================================================================
+    """
     def on_update(self, delta_time):
-        #Movemos al ppersonaje usando las físicas del juego
-        self.physics_engine.update()
+        #Si no se está haciendo la transición, el personaje está bloqueado
+        if not self.player_locked:
+            self.actualizar_jugador()
+            self.physics_engine.update()
+            self.__check_doors()
+
+            # IA y movimiento de enemigos                                  
+            for enemigo in self.enemy_list:                                
+                enemigo.seguir_jugador(self.player_sprite)                 
+                enemigo.update()                                           
+                enemigo.update_animation(delta_time)
+        
+        #LLamamos para actualizar la cámara
+        self.__update_camera(delta_time)
+        
 
         # Actualizamos la animación del personaje
         self.player_sprite.update_animation(delta_time)

@@ -30,11 +30,6 @@ class Character(arcade.Sprite):
             texture = arcade.load_texture(f"{main_path}_walk{i}.png")
             self.walk_textures.append((texture, texture.flip_left_right()))
 
-        self.climbing_textures = (
-            arcade.load_texture(f"{main_path}_climb0.png"),
-            arcade.load_texture(f"{main_path}_climb1.png")
-        )
-
         # This variable will change dynamically and will represent the currently
         # active texture.
         self.texture = self.idle_texture_pair[0]
