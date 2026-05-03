@@ -7,7 +7,7 @@ de forma diferente porque no todas vana a tener las  mismas puertas.
 """
 
 import arcade
-from enemigos import EsqueletoEnemigo, DuendeEnemigo, CocodriloEnemigo
+from personajes import EsqueletoEnemigo, DuendeEnemigo, CocodriloEnemigo
 
 # ConstaNTES DE VENTANA
 WINDOW_WIDTH = 1280
@@ -108,8 +108,8 @@ class Room1(Habitacion):
             self.añadir_pared(wall_list, col, row, color=(80, 60, 40))
     
     def spawn(self) -> list:                                              
-        cx = (ROOM_LEFT + ROOM_RIGHT)  // 2                               
-        cy = (ROOM_BOTTOM + ROOM_TOP)  // 2                               
+        cx = (WINDOW_WIDTH)  // 2                               
+        cy = (WINDOW_HEIGHT)  // 2                               
         enemigos = []                                                     
         for dx, dy in [(-200, 100), (200, -100)]:                         
             e = DuendeEnemigo()                                           

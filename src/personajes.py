@@ -167,21 +167,21 @@ class Enemigo(Character):
 
 class EsqueletoEnemigo(Enemigo):
     def __init__(self):
-        super().__init__("skeleton", "skeleton")
+        super().__init__("robot", "robot")
         self.health = 100
         self.velocidad = 2
         self.detect_distance = 300
         
 class DuendeEnemigo(Enemigo):
     def __init__(self):
-        super().__init__("goblin", "goblin")
+        super().__init__("zombie", "zombie")
         self.health = 50
         self.velocidad = 3
         self.detect_distance = 250
         
 class CocodriloEnemigo(Enemigo):
     def __init__(self):
-        super().__init__("crocodile", "crocodile")
+        super().__init__("male_adventurer", "maleAdventurer")
         self.health = 150
         self.velocidad = 1.5
         self.detect_distance = 100  
