@@ -1,7 +1,7 @@
 import arcade
 import os
 
-import Entidades_defs
+import personajes
 
 
 class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo 
@@ -24,7 +24,7 @@ class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo
         if self.cooldown <= 0:
             self.atacar = True
         if arcade.check_for_collision_with_list(self.ArmaCuerpo_lista, self.enemigo_lista) and self.atacar == True:
-            Entidades_defs.Enemigo.health -= self.danno
+            personajes.Enemigo.self.health -= self.danno
 
 
     def use(self):
