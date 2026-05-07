@@ -1,7 +1,6 @@
 import arcade
 import os
 
-import personajes
 
 
 class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo 

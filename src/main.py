@@ -8,8 +8,13 @@ import math
 from pathlib import Path
 
 import arcade
-from personajes import Protagonista
+from Entidades.Player import Player
 from Habitaciones import HABITACIONES, OPUESTO
+
+#Para mantener el aspecto retro
+from pyglet.gl import GL_NEAREST
+
+
 
 """
 ----------------------------------------------------------------------------
@@ -164,7 +169,7 @@ class GameView(arcade.View):
 
         if self.player_sprite is None:
             #iniciamos el sprite de nuestro personaje
-            self.player_sprite = Protagonista()
+            self.player_sprite = Player()
         
         #Será inicializado en la puerta de la sala en la que entra.
         self.player_sprite.change_y = 0
@@ -318,7 +323,7 @@ class GameView(arcade.View):
             self._draw_door_highlight(door.side, puertas_bloqueadas)
         
         #Dibujamos la escena que tiene las paredes y al personaje
-        self.scene.draw()
+        self.scene.draw(filter=GL_NEAREST)
 
         #Barras de vida de los enemigos
         for enemigo in self.enemy_list:
@@ -540,7 +545,7 @@ class GameView(arcade.View):
     def on_update(self, delta_time):
         #Si no se está haciendo la transición, el personaje se mueve al azar
         if not self.player_locked:
-            self.actualizar_jugador()
+            self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
             self.physics_engine.update()
             self.__check_doors()
 
@@ -572,8 +577,7 @@ class GameView(arcade.View):
         self.__update_camera(delta_time)
         
         # Actualizamos la animación del personaje
-        self.player_sprite.update_animation(delta_time)
-
+        self.player_sprite.update_animation_state(delta_time)
     """
     ============================================================================================================
     =====================================  INPUT DEL USUARIO  ==================================================
@@ -608,7 +612,7 @@ class GameView(arcade.View):
                 enemy.recibir_danno(25)
             
         #Calculamos la nueva posición
-        self.actualizar_jugador()
+        self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
     
     def on_key_release(self, key, modifiers):
         if key in [arcade.key.LEFT, arcade.key.A]:
@@ -621,7 +625,7 @@ class GameView(arcade.View):
             self.down_pressed = False
 
         #Hacemos el cálculo para que la pausa esté bien
-        self.actualizar_jugador()
+        self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
     #Mecánica del scroll de ratón
     def on_mouse_scroll(self,x,y, scroll_x,scroll_y):
         if scroll_y > 0:
@@ -634,27 +638,6 @@ class GameView(arcade.View):
     ==================================== MOVIMIENTO DEL PERSONAJE  =============================================
     ============================================================================================================
     """
-    def actualizar_jugador(self):
-        #Determinamos la dirección
-        dir_x = 0
-        dir_y = 0
-
-        if self.up_pressed: dir_y += 1
-        if self.down_pressed: dir_y -= 1
-        if self.left_pressed: dir_x -= 1 
-        if self.right_pressed: dir_x += 1
-
-        #Si nos movemos en diagonal
-        if dir_x != 0 and dir_y != 0:
-            #Calculamos el tamaño del vector
-            tam = math.sqrt(dir_x**2 + dir_y**2)
-            #posición normalizada
-            self.player_sprite.change_x = (dir_x/tam) * PLAYER_MOVEMENT_SPEED
-            self.player_sprite.change_y = (dir_y/tam) * PLAYER_MOVEMENT_SPEED
-        else:
-            #Movimiento normal / en una sola dirección
-            self.player_sprite.change_x = dir_x * PLAYER_MOVEMENT_SPEED
-            self.player_sprite.change_y = dir_y * PLAYER_MOVEMENT_SPEED
 
 def main():
     window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
