@@ -173,12 +173,27 @@ class GameView(arcade.View):
         self.player_sprite.center_x =   sx
         self.player_sprite.center_y = sy
 
+        # Motor del jugador 
+        self.physics_engine = arcade.PhysicsEngineSimple(
+            self.player_sprite, [self.wall_list, self.puertas_bloqueadas]
+        )
+
         # Enemigos, se crean en cada sala                         
         self.enemy_list = arcade.SpriteList()                              
         if not room.nivel_pasado:
             for enemigo in room.spawn():
                 self.enemy_list.append(enemigo)
 
+        # Creamos una lista para los motores de los enemigos
+        self.enemy_physics_engines = []
+        for enemigo in self.enemy_list:
+            # Cada enemigo tiene su motor contra muros y puertas
+            engine = arcade.PhysicsEngineSimple(
+                enemigo, [self.wall_list, self.puertas_bloqueadas]
+            )
+            self.enemy_physics_engines.append(engine)
+            
+        
         #inicializamos la escena
         self.scene = arcade.Scene()
         self.scene.add_sprite_list("Walls", sprite_list=self.wall_list)
@@ -187,7 +202,7 @@ class GameView(arcade.View):
 
         #Inicializamos el motor de físicas
         self.physics_engine = arcade.PhysicsEngineSimple(
-            [self.player_sprite,self.enemy_list] [self.wall_list, self.puertas_bloqueadas]
+            self.player_sprite, [self.wall_list, self.puertas_bloqueadas]
         )
 
         #Cámaras
@@ -534,30 +549,24 @@ class GameView(arcade.View):
                 self.puertas_bloqueadas.clear() #Limpiamos la lista donde están las puerrtas bloqueadas
                 HABITACIONES[self.current_room_id].nivel_pasado = True
 
-            for enemigo in self.enemy_list:
-                        # Calculamos distancia
-                        distancia = math.sqrt((self.player_sprite.center_x - enemigo.center_x)**2 + 
-                                            (self.player_sprite.center_y - enemigo.center_y)**2)
-                        
-                        if distancia < enemigo.detect_distance:
-                            # Si está cerca, lo persigue
-                            enemigo.seguir_jugador(self.player_sprite)
-                        else:
-                            # Si está lejos, camina aleatoriamente
-                            enemigo.caminar_aleatorio(delta_time)
-                        
-                        # IMPORTANTE: Validar colisiones para que no atraviesen paredes
-                        # Guardamos posición previa
-                        old_x, old_y = enemigo.center_x, enemigo.center_y
-                        
-                        enemigo.update() # Mueve al enemigo según su posición
-                        
-                        # Si tras mover, choca con una pared, vuelve atrás y resetea contador
-                        if arcade.check_for_collision_with_list(enemigo, self.wall_list):
-                            enemigo.center_x, enemigo.center_y = old_x, old_y
-                            enemigo.cambio_direccion_timer = enemigo.intervalo_cambio # Forzar cambio de dirección
-                        
-                        enemigo.update_animation(delta_time)
+            # Actualizamos los motores de los enemigos (reemplaza tu bucle de enemigos por este)
+            for i, enemigo in enumerate(self.enemy_list):
+                # 1. IA: Decidir hacia dónde ir (esto solo cambia el change_x/y)
+                distancia = math.sqrt((self.player_sprite.center_x - enemigo.center_x)**2 + 
+                                    (self.player_sprite.center_y - enemigo.center_y)**2)
+                
+                if distancia < enemigo.detect_distance:
+                    enemigo.seguir_jugador(self.player_sprite)
+                else:
+                    enemigo.caminar_aleatorio(delta_time)
+                
+                # 2. FÍSICAS: El motor mueve al enemigo y detecta muros
+                # Solo actualizamos el motor si el enemigo sigue en la lista (vivo)
+                if i < len(self.enemy_physics_engines):
+                    self.enemy_physics_engines[i].update()
+                
+                # 3. Animación
+                enemigo.update_animation(delta_time)
         
         #LLamamos para actualizar la cámara
         self.__update_camera(delta_time)

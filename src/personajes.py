@@ -145,8 +145,9 @@ class Enemigo(Character):
             
             if self.cur_texture > 7: 
                     self.cur_texture = 0
-                    
-            self.texture = self.walk_textures[self.cur_texture][self.facing_direction]
+                
+            visual_dir = self.facing_direction if self.facing_direction in [0, 1] else 0
+            self.texture = self.walk_textures[self.cur_texture][visual_dir]
             self.should_update_walk = 0
 
     def seguir_jugador(self, jugador):
