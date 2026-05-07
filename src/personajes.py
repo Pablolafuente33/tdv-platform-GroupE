@@ -4,7 +4,6 @@ from pathlib import Path
 
 import arcade
 
-from arma import Espada
 # Constants used to track the direction a character is facing
 RIGHT_FACING = 0
 LEFT_FACING = 1
