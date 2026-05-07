@@ -561,9 +561,6 @@ class GameView(arcade.View):
         #Testeo de la barra de vida
         elif key == arcade.key.F:
             self.player_sprite.health -= 25
-        elif key == arcade.key.E:
-            for enemy in self.enemy_list:
-                enemy.recibir_danno(25)
             
         #Calculamos la nueva posición
         self.actualizar_jugador()
@@ -613,6 +610,18 @@ class GameView(arcade.View):
             #Movimiento normal / en una sola dirección
             self.player_sprite.change_x = dir_x * PLAYER_MOVEMENT_SPEED
             self.player_sprite.change_y = dir_y * PLAYER_MOVEMENT_SPEED
+
+    #Mecánicas de disparos 
+    def testear_arma(self):
+        """
+        Aquí es donde TÚ programarás tus armas.
+        Ejemplo de detección de colisión simple:
+        """
+        if arcade.check_for_collision(self.jugador, self.enemigo):
+            print("¡Impacto detectado!")
+            self.enemigo.vida -= 10
+            if self.enemigo.vida <= 0:
+                self.enemigo.remove_from_sprite_lists()
 
 def main():
     window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)

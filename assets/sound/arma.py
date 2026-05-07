@@ -21,9 +21,8 @@ class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo
             self.atacar = False
         if self.cooldown <= 0:
             self.atacar = True
-        if arcade.check_for_collision_with_list(self.ArmaCuerpo_lista, self.enemigo_lista) and self.atacar == True:
-            enemigo.Enemigo.self.health -= self.danno
-
+            self.cooldown = 0
+        #arcade.check_for_collision_with_list(self.ArmaCuerpo_lista, self.enemigo_lista) #hay que implementar el enemigo
 
     def use(self):
         if self.atacar:

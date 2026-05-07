@@ -4,6 +4,7 @@ from pathlib import Path
 
 import arcade
 
+from arma import Espada
 # Constants used to track the direction a character is facing
 RIGHT_FACING = 0
 LEFT_FACING = 1
@@ -112,7 +113,6 @@ class Enemigo(Character):
         self.health = 0
         self.should_update_walk = 0
         self.detect_distance = 250
-        self.vivo = True
 
     def update_animation(self, delta_time: float):
         # 1. Determinar la dirección
@@ -160,15 +160,6 @@ class Enemigo(Character):
         else:
             self.change_x = 0
             self.change_y = 0
-
-    def recibir_danno(self, cantidad):
-
-        #Aquí deberia de azctualizrse, comprobar si hay colisión ocn otro sprite de una arma
-        
-        self.health -= cantidad
-        if self.health <= 0:
-            self.health = 0
-            self.remove_from_sprite_lists()
 
     def update(self):
         self.center_x += self.change_x
