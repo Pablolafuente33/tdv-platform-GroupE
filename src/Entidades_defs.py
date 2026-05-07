@@ -1,7 +1,6 @@
 """
 Este archivo es más una base de datos de todas los sprites necesarios 
 """
-import main
 import arcade
 from constantes import VELOCIDAD_CAMINAR_JUGADOR
 
