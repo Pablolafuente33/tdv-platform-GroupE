@@ -1,5 +1,7 @@
 import math
 
+import random
+
 from pathlib import Path
 
 import arcade
@@ -115,6 +117,8 @@ class Enemigo(Character):
         self.should_update_walk = 0
         self.detect_distance = 250
         self.vivo = True
+        self.cambio_direccion_timer = 0
+        self.intervalo_cambio = 1.5
 
     def update_animation(self, delta_time: float):
         # 1. Determinar la dirección
@@ -162,6 +166,25 @@ class Enemigo(Character):
         else:
             self.change_x = 0
             self.change_y = 0
+            
+    def caminar_aleatorio(self, delta_time):
+        self.cambio_direccion_timer += delta_time
+        
+        if self.cambio_direccion_timer >= self.intervalo_cambio:
+            opcion = random.randint(0, 4) 
+            
+            if opcion == 0:
+                self.change_x, self.change_y = 0, 0
+            elif opcion == 1:
+                self.change_x, self.change_y = 0, self.velocidad
+            elif opcion == 2:
+                self.change_x, self.change_y = 0, -self.velocidad
+            elif opcion == 3:
+                self.change_x, self.change_y = -self.velocidad, 0
+            elif opcion == 4:
+                self.change_x, self.change_y = self.velocidad, 0
+                
+            self.cambio_direccion_timer = 0 
 
     def recibir_danno(self, cantidad):
 
@@ -175,6 +198,21 @@ class Enemigo(Character):
     def update(self):
         self.center_x += self.change_x
         self.center_y += self.change_y
+        
+        # Guardar posición antigua por si hay que retroceder
+        old_x = self.center_x
+        old_y = self.center_y
+
+        # Intentar mover en X
+        self.center_x += self.change_x
+        # Si choca con otro enemigo o pared, revertir
+        if arcade.check_for_collision_with_lists(self, [self.wall_list, self.enemy_list]):
+            self.center_x = old_x
+
+        # Intentar mover en Y
+        self.center_y += self.change_y
+        if arcade.check_for_collision_with_lists(self, [self.wall_list, self.enemy_list]):
+            self.center_y = old_y
 
 class EsqueletoEnemigo(Enemigo):
     def __init__(self):

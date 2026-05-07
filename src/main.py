@@ -177,7 +177,7 @@ class GameView(arcade.View):
 
         #Inicializamos el motor de físicas
         self.physics_engine = arcade.PhysicsEngineSimple(
-            self.player_sprite, self.wall_list
+            self.player_sprite, self.wall_list, self.enemy_list
         )
 
         #Cámaras
@@ -513,18 +513,36 @@ class GameView(arcade.View):
     =======================================================================================================================================
     """
     def on_update(self, delta_time):
-        #Si no se está haciendo la transición, el personaje está bloqueado
+        #Si no se está haciendo la transición, el personaje se mueve al azar
         if not self.player_locked:
-            self.actualizar_jugador()
-            self.physics_engine.update()
-            self.__check_doors()
-
-            # IA y movimiento de enemigos                                  
-            for enemigo in self.enemy_list:                                
-                enemigo.seguir_jugador(self.player_sprite)                 
-                enemigo.update()                                           
-                enemigo.update_animation(delta_time)
-        
+                    self.actualizar_jugador()
+                    self.physics_engine.update()
+                    
+                    for enemigo in self.enemy_list:
+                        # Calculamos distancia
+                        distancia = math.sqrt((self.player_sprite.center_x - enemigo.center_x)**2 + 
+                                            (self.player_sprite.center_y - enemigo.center_y)**2)
+                        
+                        if distancia < enemigo.detect_distance:
+                            # Si está cerca, lo persigue
+                            enemigo.seguir_jugador(self.player_sprite)
+                        else:
+                            # Si está lejos, camina aleatoriamente
+                            enemigo.caminar_aleatorio(delta_time)
+                        
+                        # IMPORTANTE: Validar colisiones para que no atraviesen paredes
+                        # Guardamos posición previa
+                        old_x, old_y = enemigo.center_x, enemigo.center_y
+                        
+                        enemigo.update() # Mueve al enemigo según su posición
+                        
+                        # Si tras mover, choca con una pared, vuelve atrás y resetea contador
+                        if arcade.check_for_collision_with_list(enemigo, self.wall_list):
+                            enemigo.center_x, enemigo.center_y = old_x, old_y
+                            enemigo.cambio_direccion_timer = enemigo.intervalo_cambio # Forzar cambio de dirección
+                        
+                        enemigo.update_animation(delta_time)
+                        
         #LLamamos para actualizar la cámara
         self.__update_camera(delta_time)
         
