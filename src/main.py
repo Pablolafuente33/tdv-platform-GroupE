@@ -19,7 +19,7 @@ from Habitaciones import HABITACIONES, OPUESTO
 
 # ConstaNTES DE VENTANA
 WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
+WINDOW_HEIGHT = 704
 WINDOW_TITLE = "MEDIAVAL FIGTH"
 
 #Constyantes para cada habitación
@@ -122,6 +122,7 @@ class GameView(arcade.View):
         #Entorno
         self.door_rects      = []
         self.current_room_id = 0
+        self.puertas_bloqueadas = False
 
         #cámaras
         self.camera = None
@@ -149,9 +150,17 @@ class GameView(arcade.View):
         room.construir_habitacion(self.wall_list)
 
         #Creamos las puertas para la detección de estas
+        self.puertas_bloqueadas = arcade.SpriteList()
         for door in room.puertas:
             rect = self.__door_rect(door.side)
             self.door_rects.append((rect, door.side, door.leads_to))
+
+            # Creamos una especie de "muro" para que no traspase mientras está cerrado
+            rx,ry,rw,rh = rect
+            muro_puerta = arcade.SpriteSolidColor(int(rw), int(rh),(0,0,0,0))
+            muro_puerta.center_x = rx + rw / 2
+            muro_puerta.center_y = ry + rh / 2
+            self.puertas_bloqueadas.append(muro_puerta)
 
         if self.player_sprite is None:
             #iniciamos el sprite de nuestro personaje
@@ -166,8 +175,9 @@ class GameView(arcade.View):
 
         # Enemigos, se crean en cada sala                         
         self.enemy_list = arcade.SpriteList()                              
-        for enemigo in room.spawn():
-            self.enemy_list.append(enemigo)
+        if not room.nivel_pasado:
+            for enemigo in room.spawn():
+                self.enemy_list.append(enemigo)
 
         #inicializamos la escena
         self.scene = arcade.Scene()
@@ -177,7 +187,7 @@ class GameView(arcade.View):
 
         #Inicializamos el motor de físicas
         self.physics_engine = arcade.PhysicsEngineSimple(
-            self.player_sprite, self.wall_list
+            self.player_sprite, [self.wall_list, self.puertas_bloqueadas]
         )
 
         #Cámaras
@@ -482,10 +492,10 @@ class GameView(arcade.View):
             x, y = 0, WINDOW_HEIGHT // 2 - (half + 0.5) * TILE_SIZE
             w, h = TILE_SIZE, DOOR_TILES * TILE_SIZE
         elif side == 'u':
-            x, y = WINDOW_WIDTH // 2 - (half + 0.5) * TILE_SIZE, ROOM_TOP
+            x, y = WINDOW_WIDTH // 2 - (half) * TILE_SIZE, ROOM_TOP
             w, h = DOOR_TILES * TILE_SIZE, TILE_SIZE
         elif side == 'd':
-            x, y = WINDOW_WIDTH // 2 - (half + 0.5) * TILE_SIZE, 0
+            x, y = WINDOW_WIDTH // 2 - (half) * TILE_SIZE, 0
             w, h = DOOR_TILES * TILE_SIZE, TILE_SIZE
         arcade.draw_lrbt_rectangle_filled(x, x+w, y, y+h, (180, 140,  40) + (180,))
         arcade.draw_lrbt_rectangle_outline(x, x+w, y, y+h, (212, 160,  48), 2)
@@ -519,6 +529,11 @@ class GameView(arcade.View):
             self.physics_engine.update()
             self.__check_doors()
 
+            #Si no hay enemigos es qeu nos hemos pasado el nivel.
+            if len(self.enemy_list) == 0:
+                self.puertas_bloqueadas.clear() #Limpiamos la lista donde están las puerrtas bloqueadas
+                HABITACIONES[self.current_room_id].nivel_pasado = True
+
             # IA y movimiento de enemigos                                  
             for enemigo in self.enemy_list:                                
                 enemigo.seguir_jugador(self.player_sprite)                 
@@ -528,7 +543,6 @@ class GameView(arcade.View):
         #LLamamos para actualizar la cámara
         self.__update_camera(delta_time)
         
-
         # Actualizamos la animación del personaje
         self.player_sprite.update_animation(delta_time)
 

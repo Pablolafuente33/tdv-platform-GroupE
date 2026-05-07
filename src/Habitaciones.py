@@ -35,6 +35,7 @@ class Habitacion:
     def __init__(self, room_id: int, puertas: list):
         self.room_id = room_id
         self.puertas = puertas
+        self.nivel_pasado = False
     
     def construir_habitacion(self, wall_list:arcade.SpriteList):
         """Construimos las paredes exteriores de las habitaciones"""
@@ -90,7 +91,7 @@ class Habitacion:
 class Room0(Habitacion):
     """Sala inicial — habitación simple, puerta a la derecha."""
     def __init__(self):
-        super().__init__(0, puertas=[Puerta("r", leads_to=1)])
+        super().__init__(0, puertas=[Puerta("r", leads_to=1)],)
 
 
  
@@ -108,15 +109,16 @@ class Room1(Habitacion):
             self.añadir_pared(wall_list, col, row, color=(80, 60, 40))
     
     def spawn(self) -> list:                                              
-        cx = (WINDOW_WIDTH)  // 2                               
-        cy = (WINDOW_HEIGHT)  // 2                               
-        enemigos = []                                                     
-        for dx, dy in [(-200, 100), (200, -100)]:                         
-            e = DuendeEnemigo()                                           
-            e.center_x = cx + dx                                          
-            e.center_y = cy + dy                                          
-            enemigos.append(e)                                             
-        return enemigos  
+        if not self.nivel_pasado:
+            cx = (WINDOW_WIDTH)  // 2                               
+            cy = (WINDOW_HEIGHT)  // 2                               
+            enemigos = []                                                     
+            for dx, dy in [(-200, 100), (200, -100)]:                         
+                e = DuendeEnemigo()                                           
+                e.center_x = cx + dx                                          
+                e.center_y = cy + dy                                          
+                enemigos.append(e)                                             
+            return enemigos  
  
 class Room2(Habitacion):
     """Tercera sala — muros internos, puertas izquierda y arriba."""
@@ -132,18 +134,19 @@ class Room2(Habitacion):
             self.añadir_pared(wall_list, col, 7, color=(70, 50, 30))
 
     def spawn(self) -> list:                                               
-        cx = (WINDOW_WIDTH)  // 2                               
-        cy = (WINDOW_HEIGHT)  // 2                               
-        enemigos = []                                                     
-        for EnemyClass, dx, dy in [                                       
-            (EsqueletoEnemigo, -150,  50),                                
-            (DuendeEnemigo,     150, -50),                                
-        ]:                                                                
-            e = EnemyClass()                                              
-            e.center_x = cx + dx                                          
-            e.center_y = cy + dy                                          
-            enemigos.append(e)                                             
-        return enemigos 
+        if not self.nivel_pasado:
+            cx = (WINDOW_WIDTH)  // 2                               
+            cy = (WINDOW_HEIGHT)  // 2                               
+            enemigos = []                                                     
+            for EnemyClass, dx, dy in [                                       
+                (EsqueletoEnemigo, -150,  50),                                
+                (DuendeEnemigo,     150, -50),                                
+            ]:                                                                
+                e = EnemyClass()                                              
+                e.center_x = cx + dx                                          
+                e.center_y = cy + dy                                          
+                enemigos.append(e)                                             
+            return enemigos 
  
  
 class Room3(Habitacion):
@@ -151,12 +154,13 @@ class Room3(Habitacion):
     def __init__(self):
         super().__init__(3, puertas =[Puerta("d", leads_to=2)])
     def spawn(self) -> list:                                               
-        cx = (WINDOW_WIDTH)  // 2                               
-        cy = (WINDOW_HEIGHT)  // 2                               
-        e = CocodriloEnemigo()                                             
-        e.center_x = cx                                                    
-        e.center_y = cy                                                    
-        return [e]
+        if not self.nivel_pasado:
+            cx = (WINDOW_WIDTH)  // 2                               
+            cy = (WINDOW_HEIGHT)  // 2                               
+            e = CocodriloEnemigo()                                             
+            e.center_x = cx                                                    
+            e.center_y = cy                                                    
+            return [e]
  
  
 HABITACIONES = [Room0(), Room1(), Room2(), Room3()]
