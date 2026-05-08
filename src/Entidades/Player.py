@@ -79,18 +79,20 @@ class Player(arcade.TextureAnimationSprite):
         dir_y = 0
 
         if up:
-            self.change_x = 0
-            self.change_y = PLAYER_SPEED
-        elif down:
-            self.change_x = 0
-            self.change_y = -PLAYER_SPEED
-        elif left:
-            self.change_x = -PLAYER_SPEED
-            self.change_y = 0
-        elif right:
-            self.change_x = PLAYER_SPEED
-            self.change_y = 0
+            dir_y +=1
+        if down:
+            dir_y -=1
+        if left:
+            dir_x -=1
+        if right:
+            dir_x += 1
+
+        if dir_x !=0 and dir_y !=0:
+            tam = math.sqrt(dir_x**2 + dir_y ** 2)
+
+            self.change_x = (dir_x / tam) * PLAYER_SPEED
+            self.change_y = (dir_y / tam) * PLAYER_SPEED
         else:
-            self.change_x = 0
-            self.change_y = 0
+            self.change_x = dir_x * PLAYER_SPEED
+            self.change_y = dir_y * PLAYER_SPEED
 

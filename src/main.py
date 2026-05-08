@@ -633,12 +633,6 @@ class GameView(arcade.View):
         elif scroll_y < 0:
             self.player_sprite.objeto_anterior()
 
-    """
-    ============================================================================================================
-    ==================================== MOVIMIENTO DEL PERSONAJE  =============================================
-    ============================================================================================================
-    """
-
 def main():
     window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
     menu_view = MainMenu()
