@@ -1,3 +1,9 @@
+'''
+    Esta clase contiene todo lo relacionado al jugador:
+    - Movimiento
+    - De relación con objetos
+    - etc.
+'''
 import arcade
 from pathlib import Path
 from Entidades.gestor_animaciones import Gestor_animaciones
@@ -10,13 +16,14 @@ class Player(arcade.TextureAnimationSprite):
     def __init__(self):
         super().__init__()
         self.scale = 5
+
+        #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
         self.gestor_animaciones = Gestor_animaciones(
             sprite=self,
             spritesheet_path= f"assets/graphics/Link SpriteSheet.png",
             tamanno_sprite= (32, 32),
-            rows= 4,
             columns= 9,
-            count=9
+            duracion= 100
         )
 
         # Nuevos atributos
@@ -62,6 +69,7 @@ class Player(arcade.TextureAnimationSprite):
     ======================================================================================================
     """
     
+    #Esto simplemente actualiza la animación que se este ejecutando
     def update_animation_state(self, delta_time):
         self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
 

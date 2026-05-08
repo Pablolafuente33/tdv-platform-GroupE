@@ -322,7 +322,7 @@ class GameView(arcade.View):
         for door in HABITACIONES[self.current_room_id].puertas:
             self._draw_door_highlight(door.side, puertas_bloqueadas)
         
-        #Dibujamos la escena que tiene las paredes y al personaje
+        #Dibujamos la escena que tiene las paredes y al personaje. Para evitar que los sprites se vean borrosos establecemos el filtro en NEAREST
         self.scene.draw(filter=GL_NEAREST)
 
         #Barras de vida de los enemigos
