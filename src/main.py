@@ -4,6 +4,7 @@ Platformer Game.
 Basado en el tutorial de arcade: https://arcade.academy/examples/platform_tutorial.html#platform-tutorial
 """
 import math
+import os
 
 from pathlib import Path
 
@@ -90,13 +91,17 @@ class TitleView(arcade.View):
         self.manager = arcade.gui.UIManager()
         
         # Cargamos las imágenes del fondo y los botones
-        self.background = arcade.load_texture("assets/graphics/fondo_menu.png")
-        self.tex_jugar = arcade.load_texture("assets/graphics/boton_jugar.png")
-        self.tex_ajustes = arcade.load_texture("assets/graphics/boton_ajustes.png")
+        graficos = os.path.join('assets', 'graphics')
+        self.background = arcade.load_texture(os.path.join(graficos, 'fondo_menu.png'))
+        self.tex_jugar = arcade.load_texture(os.path.join(graficos,'boton_jugar.png'))
+        self.tex_ajustes = arcade.load_texture(os.path.join(graficos,'boton_ajustes.png'))
 
+        #Musica de inicio
+        self.load_music = arcade.load_sound(os.path.join('assets','music','InitSound.mp3'))
     def on_show_view(self):
         self.manager.enable()
         self.setup_gui()
+        self.musica_inicio = self.load_music.play(loop = True)
 
     def setup_gui(self):
         self.manager.clear()
@@ -132,9 +137,11 @@ class TitleView(arcade.View):
         @play_button.event("on_click")
         def on_click_play(event):
             self.manager.disable()
+            arcade.stop_sound(self.musica_inicio)
             game_view = GameView()
             game_view.setup()
             self.window.show_view(game_view)
+            
 
         @settings_button.event("on_click")
         def on_click_settings(event):
