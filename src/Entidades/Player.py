@@ -21,7 +21,7 @@ class Player(arcade.TextureAnimationSprite):
         #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
         self.gestor_animaciones = Gestor_animaciones(
             sprite=self,
-            spritesheet_path= os.path.join('assets','graphics','Link SpriteSheet.png'),
+            spritesheet_path = os.path.join('assets','graphics','LinkSpriteSheet.png'),
             tamanno_sprite= (32, 32),
             columns= 9,
             duracion= 100
