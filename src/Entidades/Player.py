@@ -5,6 +5,7 @@
     - etc.
 '''
 import arcade
+import os
 from pathlib import Path
 from Entidades.gestor_animaciones import Gestor_animaciones
 from constantes import PLAYER_SPEED
@@ -20,7 +21,7 @@ class Player(arcade.TextureAnimationSprite):
         #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
         self.gestor_animaciones = Gestor_animaciones(
             sprite=self,
-            spritesheet_path= f"assets/graphics/Link SpriteSheet.png",
+            spritesheet_path = os.path.join('assets','graphics','LinkSpriteSheet.png'),
             tamanno_sprite= (32, 32),
             columns= 9,
             duracion= 100

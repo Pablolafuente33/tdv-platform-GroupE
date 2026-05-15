@@ -4,10 +4,12 @@ Platformer Game.
 Basado en el tutorial de arcade: https://arcade.academy/examples/platform_tutorial.html#platform-tutorial
 """
 import math
+import os
 
 from pathlib import Path
 
 import arcade
+import arcade.gui
 from Entidades.Player import Player
 from Habitaciones import HABITACIONES, OPUESTO
 
@@ -77,25 +79,121 @@ C_MUTED     = (160, 128,  64)
 ----------------------------------------------------------------------------
 """
 
-class MainMenu(arcade.View):
+"""
+----------------------------------------------------------------------------
+---------                INTERFAZ DE MENÚS (GUI)                ------------
+----------------------------------------------------------------------------
+"""
+
+class TitleView(arcade.View):
+    def __init__(self):
+        super().__init__()
+        self.manager = arcade.gui.UIManager()
+        
+        # Cargamos las imágenes del fondo y los botones
+        graficos = os.path.join('assets', 'graphics')
+        self.background = arcade.load_texture(os.path.join(graficos, 'fondo_menu.png'))
+        self.tex_jugar = arcade.load_texture(os.path.join(graficos,'boton_jugar.png'))
+        self.tex_ajustes = arcade.load_texture(os.path.join(graficos,'boton_ajustes.png'))
+
+        #Musica de inicio
+        self.load_music = arcade.load_sound(os.path.join('assets','music','InitSound.mp3'))
     def on_show_view(self):
-        self.window.background_color = arcade.color.WHITE
+        self.manager.enable()
+        self.setup_gui()
+        #  self.musica_inicio = self.load_music.play(loop = True)  -- Lo comento porque con las pruebas me está poniendo nervioso
+
+    def setup_gui(self):
+        self.manager.clear()
+        
+        anchor = arcade.gui.UIAnchorLayout()
+        
+        self.v_box = arcade.gui.UIBoxLayout(space_between=5)
+
+        # Creación del botón de JUGAR
+        play_button = arcade.gui.UITextureButton(
+            texture=self.tex_jugar,
+            texture_hovered=self.tex_jugar,
+            texture_pressed=self.tex_jugar,
+            text="", 
+            width=350,
+            height=175
+        )
+        
+        # Creación del botón de AJUSTES
+        settings_button = arcade.gui.UITextureButton(
+            texture=self.tex_ajustes,
+            texture_hovered=self.tex_ajustes,
+            texture_pressed=self.tex_ajustes,
+            text="",
+            width=350,
+            height=175
+        )
+
+        self.v_box.add(play_button)
+        self.v_box.add(settings_button)
+
+        # Eventos al hacer click en los botones
+        @play_button.event("on_click")
+        def on_click_play(event):
+            self.manager.disable()
+            # arcade.stop_sound(self.musica_inicio)
+            game_view = GameView()
+            game_view.setup()
+            self.window.show_view(game_view)
+            
+
+        @settings_button.event("on_click")
+        def on_click_settings(event):
+            self.manager.disable()
+            self.window.show_view(SettingsView())
+
+        # Se establece la posición:
+        anchor.add(
+            child=self.v_box, 
+            anchor_x="center", 
+            anchor_y="center", 
+            align_y=-80
+        )
+        
+        self.manager.add(anchor)
 
     def on_draw(self):
         self.clear()
-        arcade.draw_text(
-            "Main Menu - Click To Play",
-            WINDOW_WIDTH // 2,
-            WINDOW_HEIGHT // 2,
-            arcade.color.BLACK,
-            font_size=30,
-            anchor_x="center"
+        
+        arcade.draw_texture_rect(
+            texture=self.background,
+            rect=arcade.LRBT(
+                left=0, 
+                right=WINDOW_WIDTH, 
+                bottom=0, 
+                top=WINDOW_HEIGHT
+            )
         )
+        
+        
+        # Dibujamos los botones
+        self.manager.draw()
 
-    def on_mouse_press(self, _x, _y, _button, _modifiers):
-        game_view = GameView()
-        game_view.setup()
-        self.window.show_view(game_view)
+class SettingsView(arcade.View):
+    
+    def __init__(self):
+        super().__init__()
+        self.manager = arcade.gui.UIManager()
+
+    def on_show_view(self):
+        self.manager.enable()
+
+    def on_hide_view(self):
+        self.manager.disable()
+
+    def on_draw(self):
+        self.clear()
+        arcade.draw_lrbt_rectangle_filled(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT, (30, 20, 10))
+        arcade.draw_text("AJUSTES", WINDOW_WIDTH // 2, WINDOW_HEIGHT * 0.75,
+                         C_WHITE, font_size=30, anchor_x="center")
+        self.manager.draw()
+
 
 """
 -------------------------------------------------------------------------------------
@@ -142,7 +240,11 @@ class GameView(arcade.View):
         #Sonidos
         self.gameover_sound = arcade.load_sound(":resources:sounds/gameover1.wav")
 
-
+    """
+    ===================================================================================================================
+    ===============================================     SETUP     =====================================================
+    ===================================================================================================================
+    """
     def setup(self, room_id: int = 0, enter_from: str = None):
         #Para la inicialización veremos en que sala está y de que sala viene
         self.current_room_id = room_id
@@ -150,9 +252,9 @@ class GameView(arcade.View):
         self.door_rects = []
         room = HABITACIONES[room_id]
 
-        #Iniciamos las paredes 
-        self.wall_list = arcade.SpriteList(use_spatial_hash=True)
-        room.construir_habitacion(self.wall_list)
+        #Cargamos el tilemap y obtenemos la escena
+        self.scene = room.construir_habitacion()
+        self.wall_list = room.get_wall_list()
 
         #Creamos las puertas para la detección de estas
         self.puertas_bloqueadas = arcade.SpriteList()
@@ -167,6 +269,8 @@ class GameView(arcade.View):
             muro_puerta.center_y = ry + rh / 2
             self.puertas_bloqueadas.append(muro_puerta)
 
+        ### INICialización del jugador
+
         if self.player_sprite is None:
             #iniciamos el sprite de nuestro personaje
             self.player_sprite = Player()
@@ -175,8 +279,10 @@ class GameView(arcade.View):
         self.player_sprite.change_y = 0
         self.player_sprite.change_x = 0
         sx, sy = self.__spawn_pos(enter_from)        
-        self.player_sprite.center_x =   sx
+        self.player_sprite.center_x = sx
         self.player_sprite.center_y = sy
+
+        self.scene.add_sprite("Player", self.player_sprite)
 
         # Motor del jugador 
         self.physics_engine = arcade.PhysicsEngineSimple(
@@ -189,6 +295,8 @@ class GameView(arcade.View):
             for enemigo in room.spawn():
                 self.enemy_list.append(enemigo)
 
+        self.scene.add_sprite_list("Enemigos", sprite_list = self.enemy_list)
+
         # Creamos una lista para los motores de los enemigos
         self.enemy_physics_engines = []
         for enemigo in self.enemy_list:
@@ -197,18 +305,6 @@ class GameView(arcade.View):
                 enemigo, [self.wall_list, self.puertas_bloqueadas]
             )
             self.enemy_physics_engines.append(engine)
-            
-        
-        #inicializamos la escena
-        self.scene = arcade.Scene()
-        self.scene.add_sprite_list("Walls", sprite_list=self.wall_list)
-        self.scene.add_sprite_list("Enemies", sprite_list=self.enemy_list)
-        self.scene.add_sprite("Player", self.player_sprite)
-
-        #Inicializamos el motor de físicas
-        self.physics_engine = arcade.PhysicsEngineSimple(
-            self.player_sprite, [self.wall_list, self.puertas_bloqueadas]
-        )
 
         #Cámaras
         if self.camera is None:
@@ -233,31 +329,42 @@ class GameView(arcade.View):
 
     def __door_rect(self,side): #Definimos la función como privada ya que solo se va a utilizar aquí
         margin = 12
+        tilemap = HABITACIONES[self.current_room_id].tile_map
+        map_width = tilemap.width * tilemap.tile_width * tilemap.scaling
+        map_height = tilemap.height * tilemap.tile_height * tilemap.scaling
+        
+        mid_x = map_width // 2
+        mid_y = map_height // 2
+
         if side == 'r':
-            cx, cy = WINDOW_WIDTH, WINDOW_HEIGHT//2
+            cx, cy = map_width, mid_y
             w, h = margin + TILE_SIZE, DOOR_TILES * TILE_SIZE
         if side == 'l':
-            cx, cy = 0, WINDOW_HEIGHT//2
+            cx, cy = 0, mid_y
             w, h = margin + TILE_SIZE, DOOR_TILES * TILE_SIZE
         if side == 'u':
-            cx, cy = WINDOW_WIDTH//2, WINDOW_HEIGHT
+            cx, cy = mid_x, map_height
             w, h = DOOR_TILES * TILE_SIZE, margin + TILE_SIZE
         if side == 'd':
-            cx, cy = WINDOW_WIDTH // 2, 0
+            cx, cy = mid_x, 0
             w, h = DOOR_TILES * TILE_SIZE, margin + TILE_SIZE
 
         return (cx - w // 2, cy - h //2, w, h)
     
     #PAra el spawn del personaje
     def __spawn_pos(self, enter_form):
-        #Spawnearemos al personaje en una posición dependiendo de por donde venga
-        cx = WINDOW_WIDTH //2
-        cy = WINDOW_HEIGHT // 2
+        tilemap = HABITACIONES[self.current_room_id].tile_map
+        map_width = tilemap.width * tilemap.tile_width * tilemap.scaling
+        map_height = tilemap.height * tilemap.tile_height * tilemap.scaling
+        
+        cx = map_width //2
+        cy = map_height // 2
+
         margin = TILE_SIZE + 40
-        if enter_form == 'r': return ROOM_RIGHT - margin, cy
-        if enter_form == 'l': return ROOM_LEFT + margin, cy
-        if enter_form == 'u': return cx, ROOM_TOP - margin
-        if enter_form == 'd': return cx, ROOM_BOTTOM + margin
+        if enter_form == 'r': return map_width - margin - TILE_SIZE, cy
+        if enter_form == 'l': return  TILE_SIZE + margin, cy
+        if enter_form == 'u': return cx, map_height- TILE_SIZE - margin
+        if enter_form == 'd': return cx, TILE_SIZE + margin
         return cx, cy
     
     def __check_doors(self):
@@ -505,20 +612,26 @@ class GameView(arcade.View):
  
     def _draw_door_highlight(self, side, bloqueada=False):
         half = DOOR_TILES // 2
+
+        tilemap = HABITACIONES[self.current_room_id].tile_map
+        map_width = tilemap.width * tilemap.tile_width * tilemap.scaling
+        map_height = tilemap.height * tilemap.tile_height * tilemap.scaling
+        
+        mid_x = map_width // 2
+        mid_y = map_height // 2
+
         if side == 'r':
-            x, y = ROOM_RIGHT, WINDOW_HEIGHT // 2 - (half + 0.5) * TILE_SIZE
+            x, y = map_width - TILE_SIZE, mid_y - (half + 0.5) * TILE_SIZE
             w, h = TILE_SIZE, DOOR_TILES * TILE_SIZE
         elif side == 'l':
-            x, y = 0, WINDOW_HEIGHT // 2 - (half + 0.5) * TILE_SIZE
+            x, y = 0, mid_y - (half + 0.5) * TILE_SIZE
             w, h = TILE_SIZE, DOOR_TILES * TILE_SIZE
         elif side == 'u':
-            x, y = WINDOW_WIDTH // 2 - (half) * TILE_SIZE, ROOM_TOP
+            x, y = mid_x - half * TILE_SIZE, map_height - TILE_SIZE
             w, h = DOOR_TILES * TILE_SIZE, TILE_SIZE
         elif side == 'd':
-            x, y = WINDOW_WIDTH // 2 - (half) * TILE_SIZE, 0
+            x, y = mid_x - half * TILE_SIZE, 0
             w, h = DOOR_TILES * TILE_SIZE, TILE_SIZE
-        arcade.draw_lrbt_rectangle_filled(x, x+w, y, y+h, (180, 140,  40) + (180,))
-        arcade.draw_lrbt_rectangle_outline(x, x+w, y, y+h, (212, 160,  48), 2)
 
         # Rojo si bloqueada, dorado si abierta                            
         color_relleno  = (140, 20, 20) if bloqueada else (180, 140, 40)   
@@ -584,10 +697,10 @@ class GameView(arcade.View):
     ============================================================================================================
     """
     def on_key_press(self, key, modifiers):
-        #Si pulsamos la tecla de escape vamos al menú de configuración.
         if key == arcade.key.ESCAPE:
-            menu_view = MainMenu()
-            self.window.show_view(menu_view)
+            # Volver a la pantalla de título
+            title_view = TitleView()
+            self.window.show_view(title_view)
             return
         
         #Teclas para mover el personaje
@@ -635,7 +748,8 @@ class GameView(arcade.View):
 
 def main():
     window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
-    menu_view = MainMenu()
+    # Cambiamos MainMenu por TitleView
+    menu_view = TitleView()
     window.show_view(menu_view)
     arcade.run()
 
