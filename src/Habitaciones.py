@@ -61,7 +61,13 @@ class Habitacion:
             },
             "obstaculos":{
                 "use_spatial_hash" : True
+            }, 
+            "puertas_abiertas":{
+                "use_spatial_hash" : True
             },
+            "puertas_cerradas":{
+                "use_spatial_hash" : True
+            }
         }
 
         self.tile_map = arcade.load_tilemap(ruta, scaling = TILE_SCALING, layer_options= layer_options)
@@ -83,6 +89,11 @@ class Habitacion:
                 pass
             try:
                 for s in self.scene["ostaculos"]:
+                    obstaculos.append(s)
+            except KeyError:
+                pass
+            try:
+                for s in self.scene["puertas_cerradas"]:
                     obstaculos.append(s)
             except KeyError:
                 pass

@@ -11,7 +11,7 @@ from pathlib import Path
 import arcade
 import arcade.gui
 from Entidades.Player import Player
-from Habitaciones import HABITACIONES, OPUESTO
+from habitaciones import HABITACIONES, OPUESTO
 
 #Para mantener el aspecto retro
 from pyglet.gl import GL_NEAREST
@@ -286,7 +286,7 @@ class GameView(arcade.View):
 
         # Motor del jugador 
         self.physics_engine = arcade.PhysicsEngineSimple(
-            self.player_sprite, [self.wall_list, self.puertas_bloqueadas]
+            self.player_sprite, [self.wall_list, self.scene["puertas_cerradas"]]
         )
 
         # Enemigos, se crean en cada sala                         
@@ -302,7 +302,7 @@ class GameView(arcade.View):
         for enemigo in self.enemy_list:
             # Cada enemigo tiene su motor contra muros y puertas
             engine = arcade.PhysicsEngineSimple(
-                enemigo, [self.wall_list, self.puertas_bloqueadas]
+                enemigo, [self.wall_list, self.scene["puertas_cerradas"]]
             )
             self.enemy_physics_engines.append(engine)
 
@@ -376,13 +376,39 @@ class GameView(arcade.View):
         if len(self.enemy_list) > 0:                                       
             return    
         
-        px = self.player_sprite.center_x
-        py = self.player_sprite.center_y
-    
-        for(rx, ry, rw, rh), side, leads_to in self.door_rects:
-            if rx <= px <= rx + rw and ry <= py <= ry + rh:
-                self.setup(room_id=leads_to, enter_from = OPUESTO[side])
-                return
+        puerta_tocada = arcade.check_for_collision_with_list(
+            self.player_sprite,
+            self.scene["puertas_abiertas"]
+        )
+        if puerta_tocada:
+            # 2. Si ha tocado una, calculamos en qué borde de la pantalla está
+            px = self.player_sprite.center_x
+            py = self.player_sprite.center_y
+            
+            # Usamos un margen razonable (ej. 2 tiles) para detectar el borde
+            margen = TILE_SIZE * 2 
+            lado_tocado = None
+            
+            if px < margen:
+                lado_tocado = 'l'
+            elif px > WINDOW_WIDTH - margen:
+                lado_tocado = 'r'
+            elif py < margen:
+                lado_tocado = 'd'
+            elif py > WINDOW_HEIGHT - margen:
+                lado_tocado = 'u'
+                
+            # 3. Buscamos ese lado en la configuración de tu clase Habitaciones
+            if lado_tocado is not None:
+                habitacion_actual = HABITACIONES[self.current_room_id]
+                for puerta_codigo in habitacion_actual.puertas:
+                    if puerta_codigo.side == lado_tocado:
+                        # Hemos encontrado la puerta en tu código, ¡cambiamos de sala!
+                        self.setup(
+                            room_id=puerta_codigo.leads_to, 
+                            enter_from=OPUESTO[puerta_codigo.side]
+                        )
+                        return
             
     def __update_camera(self, delta_time):
         #Desliz suavemente hacia el objetivo
@@ -650,6 +676,23 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(x, x+bar_w, y, y+bar_h, (30, 10, 10))   
         arcade.draw_lrbt_rectangle_filled(x, x+int(bar_w*pct), y, y+bar_h, (180,30,30))  
         arcade.draw_lrbt_rectangle_outline(x, x+bar_w, y, y+bar_h, C_GOLD_DIM, 1) 
+
+    def on_resize(self, width, height):
+        super.on_resize(width, height)
+
+        #Ajustamos las cámaras al nuevo tamaño de la pantalla
+        self.camera.match_screen(and_projection = True)
+        self.gui_camera.match_screen(and_projection = True)
+
+        #Calculamoes el crecimiiento de la pantalla respecto a la resoluciión original
+        escala_x = width / WINDOW_WIDTH
+        escala_y = height / WINDOW_HEIGHT
+
+        #Usaremos el mínimo para no deformar el juego
+        zoom = min(escala_x, escala_y)
+
+        self.camera.zoom = zoom
+        self.gui_camera.zoom = zoom
     """
     =======================================================================================================================================
     =================================================           ON UPDATE               ===================================================
@@ -666,6 +709,11 @@ class GameView(arcade.View):
             if len(self.enemy_list) == 0:
                 self.puertas_bloqueadas.clear() #Limpiamos la lista donde están las puerrtas bloqueadas
                 HABITACIONES[self.current_room_id].nivel_pasado = True
+
+                #Desactivamos las colisiones y hacemos invisibles las puertas cerradas
+                self.scene["puertas_cerradas"].clear()
+                #Ponemos en visible las puertas abiertas de la habitación.
+                self.scene["puertas_abiertas"].visible = True
 
             # Actualizamos los motores de los enemigos (reemplaza tu bucle de enemigos por este)
             for i, enemigo in enumerate(self.enemy_list):
@@ -723,6 +771,11 @@ class GameView(arcade.View):
         elif key == arcade.key.E:
             for enemy in self.enemy_list:
                 enemy.recibir_danno(25)
+
+        elif key == arcade.key.F11:
+            # Cambia el estado actual (si está en ventana pasa a completa y viceversa)
+            self.window.set_fullscreen(not self.window.fullscreen)
+            return
             
         #Calculamos la nueva posición
         self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
@@ -747,7 +800,7 @@ class GameView(arcade.View):
             self.player_sprite.objeto_anterior()
 
 def main():
-    window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
+    window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, resizable=True)
     # Cambiamos MainMenu por TitleView
     menu_view = TitleView()
     window.show_view(menu_view)
