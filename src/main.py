@@ -97,11 +97,15 @@ class TitleView(arcade.View):
         self.tex_ajustes = arcade.load_texture(os.path.join(graficos,'boton_ajustes.png'))
 
         #Musica de inicio
-        self.load_music = arcade.load_sound(os.path.join('assets','music','InitSound.mp3'))
+        self.load_music = arcade.load_sound(os.path.join('assets','music','InitSound.mp3'), streaming= True)
+        
     def on_show_view(self):
         self.manager.enable()
         self.setup_gui()
-        #  self.musica_inicio = self.load_music.play(loop = True)  -- Lo comento porque con las pruebas me está poniendo nervioso
+        self.musica_inicio = self.load_music.play(loop = True)  #-- #Lo comento porque con las pruebas me está poniendo nervioso
+
+    def on_hide_view(self):
+        self.musica_inicio.pause()
 
     def setup_gui(self):
         self.manager.clear()
