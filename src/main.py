@@ -11,7 +11,7 @@ from pathlib import Path
 import arcade
 import arcade.gui
 from Entidades.Player import Player
-from habitaciones import HABITACIONES, OPUESTO
+from Habitaciones import HABITACIONES, OPUESTO
 
 #Para mantener el aspecto retro
 from pyglet.gl import GL_NEAREST
@@ -107,6 +107,12 @@ class TitleView(arcade.View):
     def on_hide_view(self):
         self.musica_inicio.pause()
 
+    def on_resize(self, width, height):
+            # Reajusta la proyección 2D para que el dibujo no se estire
+            self.window.ctx.projection_2d = (0, width, 0, height)
+            # Reposiciona los botones del menú al nuevo centro
+            self.setup_gui()
+
     def setup_gui(self):
         self.manager.clear()
         
@@ -137,6 +143,8 @@ class TitleView(arcade.View):
         self.v_box.add(play_button)
         self.v_box.add(settings_button)
 
+        
+
         # Eventos al hacer click en los botones
         @play_button.event("on_click")
         def on_click_play(event):
@@ -163,21 +171,18 @@ class TitleView(arcade.View):
         self.manager.add(anchor)
 
     def on_draw(self):
-        self.clear()
-        
-        arcade.draw_texture_rect(
-            texture=self.background,
-            rect=arcade.LRBT(
-                left=0, 
-                right=WINDOW_WIDTH, 
-                bottom=0, 
-                top=WINDOW_HEIGHT
+            self.clear()
+            
+            arcade.draw_texture_rect(
+                texture=self.background,
+                rect=arcade.LRBT(
+                    left=0, 
+                    right=self.window.width, 
+                    bottom=0, 
+                    top=self.window.height   
+                )
             )
-        )
-        
-        
-        # Dibujamos los botones
-        self.manager.draw()
+            self.manager.draw()
 
 class SettingsView(arcade.View):
     def __init__(self):
@@ -185,93 +190,96 @@ class SettingsView(arcade.View):
         self.manager = arcade.gui.UIManager()
         
         graficos = os.path.join('assets', 'graphics')
-        
-        # Fondo específico para ajustes
         self.background = arcade.load_texture(os.path.join(graficos, 'fondo_ajustes.png'))
-        
-        # Textura para el botón VOLUMEN
         self.tex_volumen = arcade.load_texture(os.path.join(graficos, 'boton_volumen.png'))
-
-        # Textura para el botón PANTALLA COMPLETA
         self.tex_pantalla = arcade.load_texture(os.path.join(graficos, 'boton_pantalla_completa.png'))
-        
-        # Textura para el botón VOLVER
         self.tex_volver = arcade.load_texture(os.path.join(graficos, 'boton_volver.png'))
-
 
     def on_show_view(self):
         self.manager.enable()
+        self.setup_gui()
+
+    def on_resize(self, width, height):
+        self.window.ctx.projection_2d = (0, width, 0, height)
         self.setup_gui()
 
     def setup_gui(self):
         self.manager.clear()
         
         anchor = arcade.gui.UIAnchorLayout()
-        v_box = arcade.gui.UIBoxLayout(space_between=20)
+        
+        # Contenedor vertical principal (V_BOX)
+        # Bajamos el espacio entre elementos para que quepan bien los botones grandes
+        v_box = arcade.gui.UIBoxLayout(space_between=0)
 
-        vol_label = arcade.gui.UITextureButton(texture=self.tex_volumen, width=260, height=65)
-
+        # --- FILA DE VOLUMEN (Horizontal) ---
+        h_box_volume = arcade.gui.UIBoxLayout(vertical=False, space_between=10)
+        
+        # Cartel de volumen (usamos el mismo ancho/escala proporcional)
+        vol_label = arcade.gui.UITextureButton(
+            texture=self.tex_volumen, 
+            width=250, 
+            height=150
+        )
         self.volume_slider = arcade.gui.UISlider(value=50, width=300)
+        
+        h_box_volume.add(vol_label)
+        h_box_volume.add(self.volume_slider)
 
-
+        # --- BOTONES (Con la misma escala que TitleView: 350x175) ---
         fullscreen_btn = arcade.gui.UITextureButton(
             texture=self.tex_pantalla, 
-            width=260, 
-            height=65
+            width=300, 
+            height=200
         )
 
         back_btn = arcade.gui.UITextureButton(
             texture=self.tex_volver,
-            width=200,
-            height=80
+            width=300,
+            height=200
         )
 
         # --- EVENTOS ---
-
         @self.volume_slider.event("on_change")
         def on_volume_change(event):
-            # Lógica para el volumen (0.0 a 1.0)
             vol = self.volume_slider.value / 100
-            # arcade.set_volume(vol)
-            pass
+            # arcade.set_volume(vol) # Descomentar cuando sea necesario
 
         @fullscreen_btn.event("on_click")
-        @fullscreen_btn.event("on_click")
         def on_click_fullscreen(event):
-            # Alternar el estado
             self.window.set_fullscreen(not self.window.fullscreen)
-            
-            # --- ESTO ES LO QUE FALTA ---
-            # Obtenemos el nuevo tamaño físico de la ventana tras el cambio
-            width, height = self.window.get_size()
-            
-            # Forzamos a Arcade a que proyecte nuestras coordenadas lógicas 
-            # (1280x704) sobre el nuevo tamaño físico del monitor.
-            self.window.set_viewport(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT)
+            self.on_resize(self.window.width, self.window.height)
 
         @back_btn.event("on_click")
         def on_click_back(event):
             self.manager.disable()
             self.window.show_view(TitleView())
 
-        # --- AGREGAR AL CONTENEDOR ---
-        v_box.add(vol_label)
-        v_box.add(self.volume_slider)
-        v_box.add(fullscreen_btn)  # Ahora es el botón principal
+        # --- AGREGAR AL CONTENEDOR PRINCIPAL ---
+        v_box.add(h_box_volume)
+        v_box.add(fullscreen_btn)
         v_box.add(back_btn)
 
-        anchor.add(child=v_box, anchor_x="center", anchor_y="center")
+        anchor.add(
+            child=v_box, 
+            anchor_x="center", 
+            anchor_y="center",
+            align_y=-100 
+        )
+        
         self.manager.add(anchor)
 
     def on_draw(self):
         self.clear()
-        
-        # Dibujar fondo de ajustes
         arcade.draw_texture_rect(
             texture=self.background,
-            rect=arcade.LRBT(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT)
+            rect=arcade.LRBT(
+                left=0, 
+                right=self.window.width, 
+                bottom=0, 
+                top=self.window.height
+            )
         )
-        
         self.manager.draw()
 
     def on_hide_view(self):
@@ -522,15 +530,12 @@ class GameView(arcade.View):
                     self.wall_list.append(wall)
 
     def on_draw(self):
-        self.clear() #Siempre al principio del on_draw
-
-        #iniciamos la cámara antes de dibujar
+        self.clear()
         self.camera.use()
 
-        #Suelo interior
         arcade.draw_lrbt_rectangle_filled(
-            ROOM_LEFT, ROOM_RIGHT, ROOM_BOTTOM, ROOM_TOP,
-            arcade.color.DARK_BROWN
+            0, self.window.width, 0, self.window.height,
+            arcade.color.BLACK
         )
 
         #Puertas: Habrá un color diferente si están bloqueadas
@@ -558,7 +563,24 @@ class GameView(arcade.View):
                 (180,30,30), font_size=16,                                 
                 anchor_x="center", bold=True                               
             )  
+            
+    def on_resize(self, width, height):
 
+        self.camera.projection = arcade.LRBT(0, width, 0, height)
+        self.camera.viewport = arcade.LRBT(0, width, 0, height)
+
+        self.gui_camera.projection = arcade.LRBT(0, width, 0, height)
+        self.gui_camera.viewport = arcade.LRBT(0, width, 0, height)
+
+        self.centrar_camara_en_sala()
+
+
+    def centrar_camara_en_sala(self):
+        """ Hace que el centro de la sala coincida con el centro de la ventana actual """
+        centro_sala_x = (ROOM_LEFT + ROOM_RIGHT) / 2
+        centro_sala_y = (ROOM_BOTTOM + ROOM_TOP) / 2
+        
+        self.camera.move_to((centro_sala_x, centro_sala_y), 1.0)
     
     """"
     --------------------------------------------------------------------------------------
@@ -570,7 +592,7 @@ class GameView(arcade.View):
         player = self.player_sprite
  
         # ── Posición base del HUD ────────────────────────────────────────
-        hud_x = HUD_MARGIN
+        hud_x = (self.window.width // 2) - 161
         # Los slots van en la parte inferior
         slots_y   = HUD_SLOT_Y
         slots_top = slots_y + HUD_SLOT_SIZE
@@ -760,22 +782,6 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(x, x+int(bar_w*pct), y, y+bar_h, (180,30,30))  
         arcade.draw_lrbt_rectangle_outline(x, x+bar_w, y, y+bar_h, C_GOLD_DIM, 1) 
 
-    def on_resize(self, width, height):
-        super.on_resize(width, height)
-
-        #Ajustamos las cámaras al nuevo tamaño de la pantalla
-        self.camera.match_screen(and_projection = True)
-        self.gui_camera.match_screen(and_projection = True)
-
-        #Calculamoes el crecimiiento de la pantalla respecto a la resoluciión original
-        escala_x = width / WINDOW_WIDTH
-        escala_y = height / WINDOW_HEIGHT
-
-        #Usaremos el mínimo para no deformar el juego
-        zoom = min(escala_x, escala_y)
-
-        self.camera.zoom = zoom
-        self.gui_camera.zoom = zoom
     """
     =======================================================================================================================================
     =================================================           ON UPDATE               ===================================================
@@ -883,8 +889,8 @@ class GameView(arcade.View):
             self.player_sprite.objeto_anterior()
 
 def main():
-    window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, resizable=True)
-    # Cambiamos MainMenu por TitleView
+    window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
+    
     menu_view = TitleView()
     window.show_view(menu_view)
     arcade.run()
