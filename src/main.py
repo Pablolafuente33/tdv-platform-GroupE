@@ -11,7 +11,7 @@ from pathlib import Path
 import arcade
 import arcade.gui
 from Entidades.Player import Player
-from Habitaciones import HABITACIONES, OPUESTO
+from habitaciones import HABITACIONES, OPUESTO
 
 #Para mantener el aspecto retro
 from pyglet.gl import GL_NEAREST
@@ -180,23 +180,102 @@ class TitleView(arcade.View):
         self.manager.draw()
 
 class SettingsView(arcade.View):
-    
     def __init__(self):
         super().__init__()
         self.manager = arcade.gui.UIManager()
+        
+        graficos = os.path.join('assets', 'graphics')
+        
+        # Fondo específico para ajustes
+        self.background = arcade.load_texture(os.path.join(graficos, 'fondo_ajustes.png'))
+        
+        # Textura para el botón VOLUMEN
+        self.tex_volumen = arcade.load_texture(os.path.join(graficos, 'boton_volumen.png'))
+
+        # Textura para el botón PANTALLA COMPLETA
+        self.tex_pantalla = arcade.load_texture(os.path.join(graficos, 'boton_pantalla_completa.png'))
+        
+        # Textura para el botón VOLVER
+        self.tex_volver = arcade.load_texture(os.path.join(graficos, 'boton_volver.png'))
+
 
     def on_show_view(self):
         self.manager.enable()
+        self.setup_gui()
 
-    def on_hide_view(self):
-        self.manager.disable()
+    def setup_gui(self):
+        self.manager.clear()
+        
+        anchor = arcade.gui.UIAnchorLayout()
+        v_box = arcade.gui.UIBoxLayout(space_between=20)
+
+        vol_label = arcade.gui.UITextureButton(texture=self.tex_volumen, width=260, height=65)
+
+        self.volume_slider = arcade.gui.UISlider(value=50, width=300)
+
+
+        fullscreen_btn = arcade.gui.UITextureButton(
+            texture=self.tex_pantalla, 
+            width=260, 
+            height=65
+        )
+
+        back_btn = arcade.gui.UITextureButton(
+            texture=self.tex_volver,
+            width=200,
+            height=80
+        )
+
+        # --- EVENTOS ---
+
+        @self.volume_slider.event("on_change")
+        def on_volume_change(event):
+            # Lógica para el volumen (0.0 a 1.0)
+            vol = self.volume_slider.value / 100
+            # arcade.set_volume(vol)
+            pass
+
+        @fullscreen_btn.event("on_click")
+        @fullscreen_btn.event("on_click")
+        def on_click_fullscreen(event):
+            # Alternar el estado
+            self.window.set_fullscreen(not self.window.fullscreen)
+            
+            # --- ESTO ES LO QUE FALTA ---
+            # Obtenemos el nuevo tamaño físico de la ventana tras el cambio
+            width, height = self.window.get_size()
+            
+            # Forzamos a Arcade a que proyecte nuestras coordenadas lógicas 
+            # (1280x704) sobre el nuevo tamaño físico del monitor.
+            self.window.set_viewport(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT)
+
+        @back_btn.event("on_click")
+        def on_click_back(event):
+            self.manager.disable()
+            self.window.show_view(TitleView())
+
+        # --- AGREGAR AL CONTENEDOR ---
+        v_box.add(vol_label)
+        v_box.add(self.volume_slider)
+        v_box.add(fullscreen_btn)  # Ahora es el botón principal
+        v_box.add(back_btn)
+
+        anchor.add(child=v_box, anchor_x="center", anchor_y="center")
+        self.manager.add(anchor)
 
     def on_draw(self):
         self.clear()
-        arcade.draw_lrbt_rectangle_filled(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT, (30, 20, 10))
-        arcade.draw_text("AJUSTES", WINDOW_WIDTH // 2, WINDOW_HEIGHT * 0.75,
-                         C_WHITE, font_size=30, anchor_x="center")
+        
+        # Dibujar fondo de ajustes
+        arcade.draw_texture_rect(
+            texture=self.background,
+            rect=arcade.LRBT(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT)
+        )
+        
         self.manager.draw()
+
+    def on_hide_view(self):
+        self.manager.disable()
 
 
 """
@@ -290,7 +369,7 @@ class GameView(arcade.View):
 
         # Motor del jugador 
         self.physics_engine = arcade.PhysicsEngineSimple(
-            self.player_sprite, [self.wall_list, self.puertas_bloqueadas]
+            self.player_sprite, [self.wall_list, self.scene["puertas_cerradas"]]
         )
 
         # Enemigos, se crean en cada sala                         
@@ -306,7 +385,7 @@ class GameView(arcade.View):
         for enemigo in self.enemy_list:
             # Cada enemigo tiene su motor contra muros y puertas
             engine = arcade.PhysicsEngineSimple(
-                enemigo, [self.wall_list, self.puertas_bloqueadas]
+                enemigo, [self.wall_list, self.scene["puertas_cerradas"]]
             )
             self.enemy_physics_engines.append(engine)
 
@@ -380,13 +459,39 @@ class GameView(arcade.View):
         if len(self.enemy_list) > 0:                                       
             return    
         
-        px = self.player_sprite.center_x
-        py = self.player_sprite.center_y
-    
-        for(rx, ry, rw, rh), side, leads_to in self.door_rects:
-            if rx <= px <= rx + rw and ry <= py <= ry + rh:
-                self.setup(room_id=leads_to, enter_from = OPUESTO[side])
-                return
+        puerta_tocada = arcade.check_for_collision_with_list(
+            self.player_sprite,
+            self.scene["puertas_abiertas"]
+        )
+        if puerta_tocada:
+            # 2. Si ha tocado una, calculamos en qué borde de la pantalla está
+            px = self.player_sprite.center_x
+            py = self.player_sprite.center_y
+            
+            # Usamos un margen razonable (ej. 2 tiles) para detectar el borde
+            margen = TILE_SIZE * 2 
+            lado_tocado = None
+            
+            if px < margen:
+                lado_tocado = 'l'
+            elif px > WINDOW_WIDTH - margen:
+                lado_tocado = 'r'
+            elif py < margen:
+                lado_tocado = 'd'
+            elif py > WINDOW_HEIGHT - margen:
+                lado_tocado = 'u'
+                
+            # 3. Buscamos ese lado en la configuración de tu clase Habitaciones
+            if lado_tocado is not None:
+                habitacion_actual = HABITACIONES[self.current_room_id]
+                for puerta_codigo in habitacion_actual.puertas:
+                    if puerta_codigo.side == lado_tocado:
+                        # Hemos encontrado la puerta en tu código, ¡cambiamos de sala!
+                        self.setup(
+                            room_id=puerta_codigo.leads_to, 
+                            enter_from=OPUESTO[puerta_codigo.side]
+                        )
+                        return
             
     def __update_camera(self, delta_time):
         #Desliz suavemente hacia el objetivo
@@ -654,6 +759,23 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(x, x+bar_w, y, y+bar_h, (30, 10, 10))   
         arcade.draw_lrbt_rectangle_filled(x, x+int(bar_w*pct), y, y+bar_h, (180,30,30))  
         arcade.draw_lrbt_rectangle_outline(x, x+bar_w, y, y+bar_h, C_GOLD_DIM, 1) 
+
+    def on_resize(self, width, height):
+        super.on_resize(width, height)
+
+        #Ajustamos las cámaras al nuevo tamaño de la pantalla
+        self.camera.match_screen(and_projection = True)
+        self.gui_camera.match_screen(and_projection = True)
+
+        #Calculamoes el crecimiiento de la pantalla respecto a la resoluciión original
+        escala_x = width / WINDOW_WIDTH
+        escala_y = height / WINDOW_HEIGHT
+
+        #Usaremos el mínimo para no deformar el juego
+        zoom = min(escala_x, escala_y)
+
+        self.camera.zoom = zoom
+        self.gui_camera.zoom = zoom
     """
     =======================================================================================================================================
     =================================================           ON UPDATE               ===================================================
@@ -670,6 +792,11 @@ class GameView(arcade.View):
             if len(self.enemy_list) == 0:
                 self.puertas_bloqueadas.clear() #Limpiamos la lista donde están las puerrtas bloqueadas
                 HABITACIONES[self.current_room_id].nivel_pasado = True
+
+                #Desactivamos las colisiones y hacemos invisibles las puertas cerradas
+                self.scene["puertas_cerradas"].clear()
+                #Ponemos en visible las puertas abiertas de la habitación.
+                self.scene["puertas_abiertas"].visible = True
 
             # Actualizamos los motores de los enemigos (reemplaza tu bucle de enemigos por este)
             for i, enemigo in enumerate(self.enemy_list):
@@ -727,6 +854,11 @@ class GameView(arcade.View):
         elif key == arcade.key.E:
             for enemy in self.enemy_list:
                 enemy.recibir_danno(25)
+
+        elif key == arcade.key.F11:
+            # Cambia el estado actual (si está en ventana pasa a completa y viceversa)
+            self.window.set_fullscreen(not self.window.fullscreen)
+            return
             
         #Calculamos la nueva posición
         self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
@@ -751,7 +883,7 @@ class GameView(arcade.View):
             self.player_sprite.objeto_anterior()
 
 def main():
-    window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
+    window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, resizable=True)
     # Cambiamos MainMenu por TitleView
     menu_view = TitleView()
     window.show_view(menu_view)
