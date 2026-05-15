@@ -16,7 +16,7 @@ import math
 class Player(arcade.TextureAnimationSprite):
     def __init__(self):
         super().__init__()
-        self.scale = 4.5
+        self.scale = 2.5
 
         #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
         self.gestor_animaciones = Gestor_animaciones(
