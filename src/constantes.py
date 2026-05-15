@@ -21,7 +21,7 @@ ROOM_W      = ROOM_RIGHT  - ROOM_LEFT
 ROOM_H      = ROOM_TOP    - ROOM_BOTTOM
 
 # Jugador
-PLAYER_SPEED = 5
+PLAYER_SPEED = 3
 PLAYER_RADIUS         = 20
 DOOR_TILES            = 3
 

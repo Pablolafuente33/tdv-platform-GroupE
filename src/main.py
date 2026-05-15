@@ -97,11 +97,15 @@ class TitleView(arcade.View):
         self.tex_ajustes = arcade.load_texture(os.path.join(graficos,'boton_ajustes.png'))
 
         #Musica de inicio
-        self.load_music = arcade.load_sound(os.path.join('assets','music','InitSound.mp3'))
+        self.load_music = arcade.load_sound(os.path.join('assets','music','InitSound.mp3'), streaming= True)
+        
     def on_show_view(self):
         self.manager.enable()
         self.setup_gui()
-        #  self.musica_inicio = self.load_music.play(loop = True)  -- Lo comento porque con las pruebas me está poniendo nervioso
+        self.musica_inicio = self.load_music.play(loop = True)  #-- #Lo comento porque con las pruebas me está poniendo nervioso
+
+    def on_hide_view(self):
+        self.musica_inicio.pause()
 
     def setup_gui(self):
         self.manager.clear()
@@ -176,23 +180,102 @@ class TitleView(arcade.View):
         self.manager.draw()
 
 class SettingsView(arcade.View):
-    
     def __init__(self):
         super().__init__()
         self.manager = arcade.gui.UIManager()
+        
+        graficos = os.path.join('assets', 'graphics')
+        
+        # Fondo específico para ajustes
+        self.background = arcade.load_texture(os.path.join(graficos, 'fondo_ajustes.png'))
+        
+        # Textura para el botón VOLUMEN
+        self.tex_volumen = arcade.load_texture(os.path.join(graficos, 'boton_volumen.png'))
+
+        # Textura para el botón PANTALLA COMPLETA
+        self.tex_pantalla = arcade.load_texture(os.path.join(graficos, 'boton_pantalla_completa.png'))
+        
+        # Textura para el botón VOLVER
+        self.tex_volver = arcade.load_texture(os.path.join(graficos, 'boton_volver.png'))
+
 
     def on_show_view(self):
         self.manager.enable()
+        self.setup_gui()
 
-    def on_hide_view(self):
-        self.manager.disable()
+    def setup_gui(self):
+        self.manager.clear()
+        
+        anchor = arcade.gui.UIAnchorLayout()
+        v_box = arcade.gui.UIBoxLayout(space_between=20)
+
+        vol_label = arcade.gui.UITextureButton(texture=self.tex_volumen, width=260, height=65)
+
+        self.volume_slider = arcade.gui.UISlider(value=50, width=300)
+
+
+        fullscreen_btn = arcade.gui.UITextureButton(
+            texture=self.tex_pantalla, 
+            width=260, 
+            height=65
+        )
+
+        back_btn = arcade.gui.UITextureButton(
+            texture=self.tex_volver,
+            width=200,
+            height=80
+        )
+
+        # --- EVENTOS ---
+
+        @self.volume_slider.event("on_change")
+        def on_volume_change(event):
+            # Lógica para el volumen (0.0 a 1.0)
+            vol = self.volume_slider.value / 100
+            # arcade.set_volume(vol)
+            pass
+
+        @fullscreen_btn.event("on_click")
+        @fullscreen_btn.event("on_click")
+        def on_click_fullscreen(event):
+            # Alternar el estado
+            self.window.set_fullscreen(not self.window.fullscreen)
+            
+            # --- ESTO ES LO QUE FALTA ---
+            # Obtenemos el nuevo tamaño físico de la ventana tras el cambio
+            width, height = self.window.get_size()
+            
+            # Forzamos a Arcade a que proyecte nuestras coordenadas lógicas 
+            # (1280x704) sobre el nuevo tamaño físico del monitor.
+            self.window.set_viewport(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT)
+
+        @back_btn.event("on_click")
+        def on_click_back(event):
+            self.manager.disable()
+            self.window.show_view(TitleView())
+
+        # --- AGREGAR AL CONTENEDOR ---
+        v_box.add(vol_label)
+        v_box.add(self.volume_slider)
+        v_box.add(fullscreen_btn)  # Ahora es el botón principal
+        v_box.add(back_btn)
+
+        anchor.add(child=v_box, anchor_x="center", anchor_y="center")
+        self.manager.add(anchor)
 
     def on_draw(self):
         self.clear()
-        arcade.draw_lrbt_rectangle_filled(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT, (30, 20, 10))
-        arcade.draw_text("AJUSTES", WINDOW_WIDTH // 2, WINDOW_HEIGHT * 0.75,
-                         C_WHITE, font_size=30, anchor_x="center")
+        
+        # Dibujar fondo de ajustes
+        arcade.draw_texture_rect(
+            texture=self.background,
+            rect=arcade.LRBT(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT)
+        )
+        
         self.manager.draw()
+
+    def on_hide_view(self):
+        self.manager.disable()
 
 
 """

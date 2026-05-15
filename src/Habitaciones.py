@@ -88,7 +88,7 @@ class Habitacion:
             except KeyError:
                 pass
             try:
-                for s in self.scene["ostaculos"]:
+                for s in self.scene["obstaculos"]:
                     obstaculos.append(s)
             except KeyError:
                 pass
@@ -169,21 +169,31 @@ class Room2(Habitacion):
  
  
 class Room3(Habitacion):
-    """Sala final — despejada, puerta abajo."""
     def __init__(self):
         super().__init__(3, 
-                         puertas =[Puerta("d", leads_to=2)],
-                         tmx_dir = "room3.tmx")
+                         puertas=[
+                             Puerta("d", leads_to=2), 
+                             Puerta("u", leads_to=4) 
+                         ],
+                         tmx_dir="room3.tmx")
+
     def spawn(self) -> list:                                               
         if not self.nivel_pasado:
             cx = (WINDOW_WIDTH)  // 2                               
-            cy = (WINDOW_HEIGHT)  // 2                               
+            cy = (WINDOW_HEIGHT) // 2                               
             e = CocodriloEnemigo()                                             
-            e.center_x = cx                                                    
-            e.center_y = cy                                                    
+            e.center_x = cx                                                     
+            e.center_y = cy                                                     
             return [e]
         else:
             return []
- 
- 
-HABITACIONES = [Room0(), Room1(), Room2(), Room3()]
+
+class Room4(Habitacion):
+    def __init__(self):
+        super().__init__(4, 
+                         puertas=[
+                             Puerta("d", leads_to=3) 
+                         ],
+                         tmx_dir="room4.tmx")
+
+HABITACIONES = [Room0(), Room1(), Room2(), Room3(), Room4()]
