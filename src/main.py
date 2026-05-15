@@ -11,7 +11,7 @@ from pathlib import Path
 import arcade
 import arcade.gui
 from Entidades.Player import Player
-from habitaciones import HABITACIONES, OPUESTO
+from Habitaciones import HABITACIONES, OPUESTO
 
 #Para mantener el aspecto retro
 from pyglet.gl import GL_NEAREST
