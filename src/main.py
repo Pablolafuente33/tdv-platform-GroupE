@@ -466,40 +466,45 @@ class GameView(arcade.View):
         # Bloqueo de puertas si hay enemigos vivos                         
         if len(self.enemy_list) > 0:                                       
             return    
+            # Obtenemos las dimensiones reales del mapa actual en píxeles
+        tilemap = HABITACIONES[self.current_room_id].tile_map
+        map_width = tilemap.width * tilemap.tile_width * tilemap.scaling
+        map_height = tilemap.height * tilemap.tile_height * tilemap.scaling
         
-        puerta_tocada = arcade.check_for_collision_with_list(
-            self.player_sprite,
-            self.scene["puertas_abiertas"]
-        )
-        if puerta_tocada:
-            # 2. Si ha tocado una, calculamos en qué borde de la pantalla está
-            px = self.player_sprite.center_x
-            py = self.player_sprite.center_y
+        # Posición del jugador
+        px = self.player_sprite.center_x
+        py = self.player_sprite.center_y
+        
+        # Un margen de activación. Si el jugador está a menos de 90 píxeles de un borde,
+        # asumimos que está intentando cruzar una puerta en ese lado.
+        margen = 90 
+        lado_tocado = None
+        
+        # Comprobamos los 4 extremos del mapa
+        if px < margen:
+            lado_tocado = 'l'  # Izquierda (Left)
+        elif px > map_width - margen:
+            lado_tocado = 'r'  # Derecha (Right)
+        elif py < (margen+10):
+            lado_tocado = 'd'  # Abajo (Down)
+        elif py > map_height - (margen+10):
+            lado_tocado = 'u'  # Arriba (Up)
             
-            # Usamos un margen razonable (ej. 2 tiles) para detectar el borde
-            margen = TILE_SIZE * 2 
-            lado_tocado = None
+        # Si el jugador ha llegado a un extremo del mapa...
+        if lado_tocado is not None:
+            habitacion_actual = HABITACIONES[self.current_room_id]
             
-            if px < margen:
-                lado_tocado = 'l'
-            elif px > WINDOW_WIDTH - margen:
-                lado_tocado = 'r'
-            elif py < margen:
-                lado_tocado = 'd'
-            elif py > WINDOW_HEIGHT - margen:
-                lado_tocado = 'u'
-                
-            # 3. Buscamos ese lado en la configuración de tu clase Habitaciones
-            if lado_tocado is not None:
-                habitacion_actual = HABITACIONES[self.current_room_id]
-                for puerta_codigo in habitacion_actual.puertas:
-                    if puerta_codigo.side == lado_tocado:
-                        # Hemos encontrado la puerta en tu código, ¡cambiamos de sala!
-                        self.setup(
-                            room_id=puerta_codigo.leads_to, 
-                            enter_from=OPUESTO[puerta_codigo.side]
-                        )
-                        return
+            # Buscamos si la habitación actual tiene una puerta registrada en ese lado
+            for puerta_codigo in habitacion_actual.puertas:
+                if puerta_codigo.side == lado_tocado:
+                    print(f"¡Puerta cruzada por el lado {lado_tocado}! Viajando a la sala {puerta_codigo.leads_to}")
+                    
+                    # Cambiamos de sala
+                    self.setup(
+                        room_id=puerta_codigo.leads_to, 
+                        enter_from=OPUESTO[puerta_codigo.side]
+                    )
+                    return
             
     def __update_camera(self, delta_time):
         #Desliz suavemente hacia el objetivo
@@ -792,7 +797,6 @@ class GameView(arcade.View):
         if not self.player_locked:
             self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
             self.physics_engine.update()
-            self.__check_doors()
 
             #Si no hay enemigos es qeu nos hemos pasado el nivel.
             if len(self.enemy_list) == 0:
@@ -804,7 +808,11 @@ class GameView(arcade.View):
                 #Ponemos en visible las puertas abiertas de la habitación.
                 self.scene["puertas_abiertas"].visible = True
 
-            # Actualizamos los motores de los enemigos (reemplaza tu bucle de enemigos por este)
+                self.physics_engine = arcade.PhysicsEngineSimple(
+                        self.player_sprite, [self.wall_list]
+                    )
+                
+            # Actualizamos los motores de los enemigos 
             for i, enemigo in enumerate(self.enemy_list):
                 # 1. IA: Decidir hacia dónde ir (esto solo cambia el change_x/y)
                 distancia = math.sqrt((self.player_sprite.center_x - enemigo.center_x)**2 + 
@@ -815,13 +823,13 @@ class GameView(arcade.View):
                 else:
                     enemigo.caminar_aleatorio(delta_time)
                 
-                # 2. FÍSICAS: El motor mueve al enemigo y detecta muros
                 # Solo actualizamos el motor si el enemigo sigue en la lista (vivo)
                 if i < len(self.enemy_physics_engines):
                     self.enemy_physics_engines[i].update()
                 
-                # 3. Animación
                 enemigo.update_animation(delta_time)
+
+        self.__check_doors()
         
         #LLamamos para actualizar la cámara
         self.__update_camera(delta_time)
