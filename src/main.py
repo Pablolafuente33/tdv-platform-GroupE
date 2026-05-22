@@ -5,7 +5,7 @@ Basado en el tutorial de arcade: https://arcade.academy/examples/platform_tutori
 """
 import math
 import os
-
+import personajes
 from pathlib import Path
 
 import arcade
@@ -852,8 +852,8 @@ class GameView(arcade.View):
         
         # Botón para usar el arma
         elif key == arcade.key.SPACE:
-            self.player_sprite.usar_objeto()
-        
+            self.arma_activa = Espada()
+            self.arma_activa.use(self.enemy_list, self.player_sprite)
         #Testeo de la barra de vida
         elif key == arcade.key.F:
             self.player_sprite.health -= 25
@@ -887,6 +887,81 @@ class GameView(arcade.View):
             self.player_sprite.objeto_siguiente()
         elif scroll_y < 0:
             self.player_sprite.objeto_anterior()
+
+"""
+============================================================================================================
+=====================================  ARMAS  ==============================================================
+============================================================================================================
+"""
+
+class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo 
+    def __init__(self, danno , rango , cooldown, imagen, escala, nombre):        
+        super().__init__(imagen, escala)
+        self.danno = danno
+        self.rango = rango
+        self.cooldown_max = cooldown
+        self.nombre = nombre
+        self.cooldown = 0
+        self.atacar = True
+
+    def getDanno(self):
+        return self.danno
+
+    def on_update(self, delta_time):
+        if self.cooldown > 0:
+            self.cooldown -= delta_time
+            self.atacar = False
+        if self.cooldown <= 0:
+            self.atacar = True
+
+
+    def use(self, enemy_list, player_sprite):
+        if self.atacar:
+            self.center_x = player_sprite.center_x + (20 if player_sprite.change_x >= 0 else -20)
+            self.center_y = player_sprite.center_y
+            print("atacar")
+            
+            hit_list = arcade.check_for_collision_with_list(self, enemy_list)
+            
+            for enemy in hit_list:
+                enemy.health -= self.danno
+                print(f"Enemigo dañado: {enemy.health} HP restantes")
+            
+            if hit_list:
+                self.atacar = False 
+                self.cooldown = self.cooldown_max
+
+class Espada(ArmaCuerpoACuerpo):     
+    def __init__(self):
+        super().__init__(
+            danno       = 30,
+            rango       = 50,
+            cooldown    = 40,
+            imagen      = os.path.join('assets','espada.png'),
+            escala      = 0.4,
+            nombre      = "Espada",
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def main():
     window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)

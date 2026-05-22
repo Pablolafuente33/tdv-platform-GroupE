@@ -127,6 +127,7 @@ class Room1(Habitacion):
         super().__init__(1, 
                          puertas =[Puerta("l",  leads_to=0),Puerta("r", leads_to=2)],
                          tmx_dir = "room1.tmx")
+
     
     def spawn(self) -> list:                                              
         if self.nivel_pasado:
