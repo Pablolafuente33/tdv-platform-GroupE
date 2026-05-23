@@ -574,7 +574,7 @@ class GameView(arcade.View):
         """Dibuja la barra de vida y el inventario en la esquina inferior izquierda."""
         player = self.player_sprite
  
-        # ── Posición base del HUD ────────────────────────────────────────
+        #  Posición base del HUD 
         hud_x = (self.window.width // 2) - 161
         # Los slots van en la parte inferior
         slots_y   = HUD_SLOT_Y
@@ -584,7 +584,7 @@ class GameView(arcade.View):
         bar_y   = slots_top + 20
         bar_top = bar_y + HUD_BAR_H
  
-        # ── Barra de vida ────────────────────────────────────────────────
+        # Barra de vida 
         hp_pct = player.health / player.max_health
  
         # Fondo de la barra
@@ -637,7 +637,7 @@ class GameView(arcade.View):
             C_MUTED, font_size=10, bold=True
         )
  
-        # ── Inventario ───────────────────────────────────────────────────
+        #  Inventario 
         for i in range(5):
             sx = hud_x + i * (HUD_SLOT_SIZE + HUD_SLOT_GAP)
             sy = slots_y
@@ -692,18 +692,37 @@ class GameView(arcade.View):
                     anchor_x="center", anchor_y="center"
                 )
             else:
-                # Icono del objeto
-                padding = 8
+                #Icono del objeto
+                padding = 3
+                izq = sx + padding
+                der = sx + HUD_SLOT_SIZE - padding
+                aba = sy + padding + 8
+                arr = sy + HUD_SLOT_SIZE - padding
+                
+                # 1. Dibujamos la textura del objeto normal
                 arcade.draw_texture_rect(
-                    item.texture, #La dirección que le pasamos antes se ha pasado a una textura
-                    arcade.LRBT(
-                        sx + padding,
-                        sx + HUD_SLOT_SIZE - padding,
-                        sy + padding + 8,
-                        sy + HUD_SLOT_SIZE - padding
-                    )
+                    item.texture,
+                    arcade.LRBT(izq, der, aba, arr)
                 )
-                # Nombre
+                
+                # 2. NUEVO: Filtro de Cooldown
+                # Comprobamos si el objeto tiene las variables de cooldown 
+                if hasattr(item, 'cooldown') and hasattr(item, 'cooldown_max'):
+                    if item.cooldown > 0 and item.cooldown_max > 0:
+                        # Calculamos el porcentaje que le queda (de 0.0 a 1.0)
+                        pct = item.cooldown / item.cooldown_max
+                        
+                        # Calculamos hasta dónde llega la cortina oscura
+                        altura_oscura = aba + (arr - aba) * pct
+                        
+                        # Dibujamos un rectángulo gris semitransparente (RGBA: el 180 es la opacidad)
+                        arcade.draw_lrbt_rectangle_filled(
+                            izq, der, 
+                            aba, altura_oscura, 
+                            (40, 40, 40, 180) 
+                        )
+                        
+                # Nombre del objeto
                 arcade.draw_text(
                     item.nombre,
                     cx, sy + 5,
