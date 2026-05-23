@@ -11,8 +11,7 @@ from pathlib import Path
 import arcade
 import arcade.gui
 from Entidades.Player import Player
-from Habitaciones import HABITACIONES, OPUESTO
-
+from habitaciones import HABITACIONES, OPUESTO
 #Para mantener el aspecto retro
 from pyglet.gl import GL_NEAREST
 
@@ -102,7 +101,7 @@ class TitleView(arcade.View):
     def on_show_view(self):
         self.manager.enable()
         self.setup_gui()
-        self.musica_inicio = self.load_music.play(loop = True)  #-- #Lo comento porque con las pruebas me está poniendo nervioso
+        self.musica_inicio = self.load_music.play(loop = True, volume=0.2)  #-- #Lo comento porque con las pruebas me está poniendo nervioso
 
     def on_hide_view(self):
         self.musica_inicio.pause()
@@ -811,7 +810,11 @@ class GameView(arcade.View):
                 self.physics_engine = arcade.PhysicsEngineSimple(
                         self.player_sprite, [self.wall_list]
                     )
-                
+            # Actualizamos el cooldoewn del arma que llevamos.
+            arma = self.player_sprite.objeto_equipado()
+            if arma is not None:
+                arma.on_update(delta_time)
+    
             # Actualizamos los motores de los enemigos 
             for i, enemigo in enumerate(self.enemy_list):
                 # 1. IA: Decidir hacia dónde ir (esto solo cambia el change_x/y)
@@ -860,14 +863,11 @@ class GameView(arcade.View):
         
         # Botón para usar el arma
         elif key == arcade.key.SPACE:
-            self.arma_activa = Espada()
+            self.arma_activa = self.player_sprite.objeto_equipado()
             self.arma_activa.use(self.enemy_list, self.player_sprite)
         #Testeo de la barra de vida
         elif key == arcade.key.F:
             self.player_sprite.health -= 25
-        elif key == arcade.key.E:
-            for enemy in self.enemy_list:
-                enemy.recibir_danno(25)
 
         elif key == arcade.key.F11:
             # Cambia el estado actual (si está en ventana pasa a completa y viceversa)
@@ -901,74 +901,6 @@ class GameView(arcade.View):
 =====================================  ARMAS  ==============================================================
 ============================================================================================================
 """
-
-class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo 
-    def __init__(self, danno , rango , cooldown, imagen, escala, nombre):        
-        super().__init__(imagen, escala)
-        self.danno = danno
-        self.rango = rango
-        self.cooldown_max = cooldown
-        self.nombre = nombre
-        self.cooldown = 0
-        self.atacar = True
-
-    def getDanno(self):
-        return self.danno
-
-    def on_update(self, delta_time):
-        if self.cooldown > 0:
-            self.cooldown -= delta_time
-            self.atacar = False
-        if self.cooldown <= 0:
-            self.atacar = True
-
-
-    def use(self, enemy_list, player_sprite):
-        if self.atacar:
-            self.center_x = player_sprite.center_x + (20 if player_sprite.change_x >= 0 else -20)
-            self.center_y = player_sprite.center_y
-            print("atacar")
-            
-            hit_list = arcade.check_for_collision_with_list(self, enemy_list)
-            
-            for enemy in hit_list:
-                enemy.health -= self.danno
-                print(f"Enemigo dañado: {enemy.health} HP restantes")
-            
-            if hit_list:
-                self.atacar = False 
-                self.cooldown = self.cooldown_max
-
-class Espada(ArmaCuerpoACuerpo):     
-    def __init__(self):
-        super().__init__(
-            danno       = 30,
-            rango       = 50,
-            cooldown    = 40,
-            imagen      = os.path.join('assets','espada.png'),
-            escala      = 0.4,
-            nombre      = "Espada",
-        )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def main():

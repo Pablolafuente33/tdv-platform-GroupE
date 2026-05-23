@@ -3,6 +3,7 @@ import os
 
 
 
+
 class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo 
     def __init__(self, danno , rango , cooldown, imagen, escala, nombre):        
         super().__init__(imagen, escala)
@@ -10,7 +11,7 @@ class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo
         self.rango = rango
         self.cooldown_max = cooldown
         self.nombre = nombre
-        self.cooldown = 0 #Inicializamos el cooldown a 0 para que pueda usarse de primeras
+        self.cooldown = 0
         self.atacar = True
 
     def getDanno(self):
@@ -22,14 +23,36 @@ class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo
             self.atacar = False
         if self.cooldown <= 0:
             self.atacar = True
-        if arcade.check_for_collision_with_list(self.ArmaCuerpo_lista, self.enemigo_lista) and self.atacar == True:
-            personajes.Enemigo.self.health -= self.danno
 
 
-    def use(self):
+    def use(self, enemy_list, player_sprite):
         if self.atacar:
-            self.atacar = False 
-            self.cooldown = self.cooldown_max 
+            self.center_x = player_sprite.center_x + (20 if player_sprite.change_x >= 0 else -20)
+            self.center_y = player_sprite.center_y
+            print("atacar")
+            
+            hit_list = arcade.check_for_collision_with_list(self, enemy_list)
+            
+            for enemy in hit_list:
+                enemy.recibir_danno(self.danno)
+                print(f"Enemigo dañado: {enemy.health} HP restantes")
+            
+            if hit_list:
+                self.atacar = False 
+                self.cooldown = self.cooldown_max
+
+class Espada(ArmaCuerpoACuerpo):     
+    def __init__(self):
+        super().__init__(
+            danno       = 30,
+            rango       = 50,
+            cooldown    = 4,
+            imagen      = os.path.join('assets','espada.png'),
+            escala      = 0.4,
+            nombre      = "Espada",
+        )
+
+
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Esto es lo que se va a ver que va a ir viajando por la pantalla
@@ -60,14 +83,3 @@ class ArmaDistancia(arcade.Sprite): #base para varias armas a distancia
     def getCooldown(self):
         return self.atacar
     
-
-class Espada(ArmaCuerpoACuerpo):     
-    def __init__(self):
-        super().__init__(
-            danno       = 30,
-            rango       = 50,
-            cooldown    = 0.8,
-            imagen      = os.path.join('assets','espada.png'),
-            escala      = 0.4,
-            nombre      = "Espada",
-        )
