@@ -11,7 +11,7 @@ from pathlib import Path
 import arcade
 import arcade.gui
 from Entidades.Player import Player
-from habitaciones import HABITACIONES, OPUESTO
+from Habitaciones import HABITACIONES, OPUESTO
 #Para mantener el aspecto retro
 from pyglet.gl import GL_NEAREST
 
@@ -96,10 +96,20 @@ class TitleView(arcade.View):
     def on_show_view(self):
         self.manager.enable()
         self.setup_gui()
-        self.musica_inicio = self.load_music.play(loop = True, volume=0.2)  #-- #Lo comento porque con las pruebas me está poniendo nervioso
+        
+        volumen_actual = 0.2
+        if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+            volumen_actual = self.window.bgm_player.volume
+
+        if not hasattr(self.window, "current_bgm_track") or self.window.current_bgm_track != "menu":
+            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                self.window.bgm_player.delete()
+            
+            self.window.bgm_player = self.load_music.play(loop=True, volume=volumen_actual)
+            self.window.current_bgm_track = "menu"
 
     def on_hide_view(self):
-        self.musica_inicio.pause()
+        self.manager.disable()
 
     def on_resize(self, width, height):
             # Reajusta la proyección 2D para que el dibujo no se estire
@@ -140,14 +150,21 @@ class TitleView(arcade.View):
         
 
         # Eventos al hacer click en los botones
+
         @play_button.event("on_click")
         def on_click_play(event):
             self.manager.disable()
-            # arcade.stop_sound(self.musica_inicio)
+            self.window.volumen_guardado = 0.2
+            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                self.window.volumen_guardado = self.window.bgm_player.volume
+                self.window.bgm_player.delete()
+                self.window.bgm_player = None
+
+            self.window.current_bgm_track = None
+
             game_view = GameView()
-            game_view.setup()
+            game_view.setup()  # Inicializa el mapa, jugador, etc.
             self.window.show_view(game_view)
-            
 
         @settings_button.event("on_click")
         def on_click_settings(event):
@@ -189,9 +206,11 @@ class SettingsView(arcade.View):
         self.tex_pantalla = arcade.load_texture(os.path.join(graficos, 'boton_pantalla_completa.png'))
         self.tex_volver = arcade.load_texture(os.path.join(graficos, 'boton_volver.png'))
 
+
     def on_show_view(self):
         self.manager.enable()
         self.setup_gui()
+
 
     def on_resize(self, width, height):
         self.window.ctx.projection_2d = (0, width, 0, height)
@@ -202,25 +221,27 @@ class SettingsView(arcade.View):
         
         anchor = arcade.gui.UIAnchorLayout()
         
-        # Contenedor vertical principal (V_BOX)
-        # Bajamos el espacio entre elementos para que quepan bien los botones grandes
         v_box = arcade.gui.UIBoxLayout(space_between=0)
 
         # --- FILA DE VOLUMEN (Horizontal) ---
         h_box_volume = arcade.gui.UIBoxLayout(vertical=False, space_between=10)
         
-        # Cartel de volumen (usamos el mismo ancho/escala proporcional)
         vol_label = arcade.gui.UITextureButton(
             texture=self.tex_volumen, 
             width=250, 
             height=150
         )
-        self.volume_slider = arcade.gui.UISlider(value=50, width=300)
+        
+        volumen_global = 20
+        if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+            volumen_global = int(self.window.bgm_player.volume * 100)
+
+        self.volume_slider = arcade.gui.UISlider(value=volumen_global, width=300)
         
         h_box_volume.add(vol_label)
         h_box_volume.add(self.volume_slider)
 
-        # --- BOTONES (Con la misma escala que TitleView: 350x175) ---
+        # --- BOTONES ---
         fullscreen_btn = arcade.gui.UITextureButton(
             texture=self.tex_pantalla, 
             width=300, 
@@ -237,7 +258,8 @@ class SettingsView(arcade.View):
         @self.volume_slider.event("on_change")
         def on_volume_change(event):
             vol = self.volume_slider.value / 100
-            # arcade.set_volume(vol) # Descomentar cuando sea necesario
+            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                self.window.bgm_player.volume = vol
 
         @fullscreen_btn.event("on_click")
         def on_click_fullscreen(event):
@@ -325,6 +347,7 @@ class GameView(arcade.View):
         
         #Sonidos
         self.gameover_sound = arcade.load_sound(":resources:sounds/gameover1.wav")
+        self.music_game = arcade.load_sound(os.path.join('assets', 'music', 'GameSound.mp3'), streaming=True)
 
     """
     ===================================================================================================================
@@ -412,6 +435,16 @@ class GameView(arcade.View):
         
         #Bloquearemos al jugador mientras la cámara se está moviento
         self.player_locked = enter_from is not None
+
+        # IMPLEMENTACIÓN DEL SONIDO
+        volumen_actual = getattr(self.window, "volumen_guardado", 0.2)
+
+        if not hasattr(self.window, "current_bgm_track") or self.window.current_bgm_track != "game":
+                    if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                        self.window.bgm_player.delete()
+                            
+                    self.window.bgm_player = self.music_game.play(loop=True, volume=volumen_actual)
+                    self.window.current_bgm_track = "game"
 
     def __door_rect(self,side): #Definimos la función como privada ya que solo se va a utilizar aquí
         margin = 12
@@ -857,6 +890,17 @@ class GameView(arcade.View):
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ESCAPE:
             # Volver a la pantalla de título
+            # Detener música de juego al salir
+            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                self.window.bgm_player.delete()
+                self.window.bgm_player = None
+            if hasattr(self.window, "current_bgm_track"):
+                self.window.current_bgm_track = None
+
+            # Volver a la pantalla de título
+            title_view = TitleView()
+            self.window.show_view(title_view)
+            return
             title_view = TitleView()
             self.window.show_view(title_view)
             return
