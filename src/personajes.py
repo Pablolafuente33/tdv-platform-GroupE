@@ -52,11 +52,16 @@ class Enemigo(Character):
         super().__init__(nombre_carpeta, nombre_archivo)
         self.velocidad = 0
         self.health = 0
+        self.max_health = 0
         self.should_update_walk = 0
         self.detect_distance = 250
         self.vivo = True
         self.cambio_direccion_timer = 0
         self.intervalo_cambio = 1.5
+
+        self.danno = 0
+        self.coolldown_max = 0
+        self.cooldown = 0
 
     def update_animation(self, delta_time: float):
         # 1. Determinar la dirección
@@ -128,48 +133,52 @@ class Enemigo(Character):
     def recibir_danno(self, cantidad):
 
         #Aquí deberia de azctualizrse, comprobar si hay colisión ocn otro sprite de una arma
-        
         self.health -= cantidad
         if self.health <= 0:
             self.health = 0
             self.remove_from_sprite_lists()
 
-    def update(self):
-        self.center_x += self.change_x
-        self.center_y += self.change_y
-        
-        # Guardar posición antigua por si hay que retroceder
-        old_x = self.center_x
-        old_y = self.center_y
+    def update(self,delta_time):
+        if self.cooldown > 0:
+            self.cooldown -= delta_time
 
-        # Intentar mover en X
-        self.center_x += self.change_x
-        # Si choca con otro enemigo o pared, revertir
-        if arcade.check_for_collision_with_lists(self, [self.wall_list, self.enemy_list]):
-            self.center_x = old_x
-
-        # Intentar mover en Y
-        self.center_y += self.change_y
-        if arcade.check_for_collision_with_lists(self, [self.wall_list, self.enemy_list]):
-            self.center_y = old_y
+    def atacar_jugador (self, jugador):
+        if self.cooldown <= 0:
+            jugador.health -= self.danno
+            self.cooldown = self.coolldown_max
+            print(f'Enemigo ataca !! Vida jugador {jugador.health}')
 
 class EsqueletoEnemigo(Enemigo):
     def __init__(self):
         super().__init__("robot", "robot")
         self.health = 100
+        self.max_health = 100
         self.velocidad = 2
         self.detect_distance = 300
+
+        self.danno = 10
+        self.coolldown_max = 10
+        self.cooldown = 0
         
 class DuendeEnemigo(Enemigo):
     def __init__(self):
         super().__init__("zombie", "zombie")
         self.health = 50
+        self.max_health = 50
         self.velocidad = 3
         self.detect_distance = 250
         
+        self.danno = 25
+        self.coolldown_max = 7
+        self.cooldown = 0
 class CocodriloEnemigo(Enemigo):
     def __init__(self):
         super().__init__("male_adventurer", "maleAdventurer")
         self.health = 150
+        self.max_health = 150
         self.velocidad = 1.5
         self.detect_distance = 100  
+
+        self.danno = 5
+        self.coolldown_max = 2
+        self.cooldown = 0

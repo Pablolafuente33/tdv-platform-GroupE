@@ -8,7 +8,7 @@ import arcade
 import os
 from pathlib import Path
 from Entidades.gestor_animaciones import Gestor_animaciones
-from constantes import PLAYER_SPEED
+from constantes import PLAYER_SPEED, RIGHT, UP, LEFT, DOWN
 from arma import Espada
 import math
 # from constantes import PLAYER_SPEED
@@ -27,12 +27,12 @@ class Player(arcade.TextureAnimationSprite):
             duracion= 100
         )
 
-        # Nuevos atributos
         self.health = 100
         self.max_health = 100
+        #Para los objetos
         self.inventario = [Espada()] + [None] * 4
         self.equipped_index = 0
-
+        self.facing_direction = 0
     
     def objeto_siguiente(self):
         """Equipa el objeto posterior al que tenemos"""
@@ -81,12 +81,17 @@ class Player(arcade.TextureAnimationSprite):
 
         if up:
             dir_y +=1
+            self.facing_direction = UP
         if down:
             dir_y -=1
+            self.facing_direction = DOWN
         if left:
             dir_x -=1
+            self.facing_direction = LEFT
         if right:
             dir_x += 1
+            self.facing_direction = RIGHT
+            
 
         if dir_x !=0 and dir_y !=0:
             tam = math.sqrt(dir_x**2 + dir_y ** 2)

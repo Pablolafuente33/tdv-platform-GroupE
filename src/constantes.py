@@ -21,9 +21,14 @@ ROOM_W      = ROOM_RIGHT  - ROOM_LEFT
 ROOM_H      = ROOM_TOP    - ROOM_BOTTOM
 
 # Jugador
-PLAYER_SPEED = 3
+PLAYER_SPEED = 5.05
 PLAYER_RADIUS         = 20
 DOOR_TILES            = 3
+
+RIGHT = 0
+LEFT = 1
+UP = 3
+DOWN = 2
 
 # HUD
 HUD_MARGIN    = (WINDOW_WIDTH // 2) - 161
@@ -34,7 +39,6 @@ HUD_SLOT_GAP  = 8
 HUD_SLOT_Y    = 16
 
 # Colores
-COLOR_WALL  = (60,  60,  60)
 C_DARK      = (26,  18,   8)
 C_GOLD      = (212, 160,  48)
 C_GOLD_DIM  = (107,  74,  26)

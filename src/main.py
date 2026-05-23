@@ -30,8 +30,6 @@ WINDOW_TITLE = "MEDIAVAL FIGTH"
 
 #Constyantes para cada habitación
 TILE_SIZE = 64
-WALL_COLS       = WINDOW_WIDTH  // TILE_SIZE  # 20 columnas
-WALL_ROWS       = WINDOW_HEIGHT // TILE_SIZE  # 11 filas
 
 # Área jugable (interior de las paredes)
 ROOM_LEFT   = TILE_SIZE
@@ -40,9 +38,6 @@ ROOM_BOTTOM = TILE_SIZE
 ROOM_TOP    = WINDOW_HEIGHT - TILE_SIZE
 ROOM_W      = ROOM_RIGHT  - ROOM_LEFT
 ROOM_H      = ROOM_TOP    - ROOM_BOTTOM
-
-#Colores de la habitación
-COLOR_WALL  = (60, 60, 60)   
 
 
 # Movement speed of player, in pixels per frame
@@ -97,7 +92,7 @@ class TitleView(arcade.View):
 
         #Musica de inicio
         self.load_music = arcade.load_sound(os.path.join('assets','music','InitSound.mp3'), streaming= True)
-        
+
     def on_show_view(self):
         self.manager.enable()
         self.setup_gui()
@@ -308,6 +303,7 @@ class GameView(arcade.View):
         self.enemy_list = None
         self.wall_list = None
         self.scene = None
+        self.lista_armas = arcade.SpriteList()
 
         # Motor de física
         self.physics_engine = None
@@ -520,18 +516,6 @@ class GameView(arcade.View):
             self.pos_camara_y = self.cam_target_y
             self.movimiento_camara = False
             self.player_locked = False 
-    
-    def build_room(self):
-        """Rellena el borde de la pantalla con tiles de pared."""
-        for col in range(WALL_COLS):
-            for row in range(WALL_ROWS):
-                is_wall = (col == 0 or col == WALL_COLS - 1 or
-                           row == 0 or row == WALL_ROWS - 1)
-                if is_wall:
-                    wall = arcade.SpriteSolidColor(TILE_SIZE, TILE_SIZE, (60,60,60))
-                    wall.center_x = col * TILE_SIZE + TILE_SIZE // 2
-                    wall.center_y = row * TILE_SIZE + TILE_SIZE // 2
-                    self.wall_list.append(wall)
 
     def on_draw(self):
         self.clear()
@@ -567,24 +551,19 @@ class GameView(arcade.View):
                 (180,30,30), font_size=16,                                 
                 anchor_x="center", bold=True                               
             )  
+
+        arma_equipada = self.player_sprite.objeto_equipado()
+        if arma_equipada is not None and arma_equipada.tiempo_visible > 0:
+            if arma_equipada not in self.lista_armas:
+                self.lista_armas.clear()
+                self.lista_armas.append(arma_equipada)
             
-    def on_resize(self, width, height):
-
-        self.camera.projection = arcade.LRBT(0, width, 0, height)
-        self.camera.viewport = arcade.LRBT(0, width, 0, height)
-
-        self.gui_camera.projection = arcade.LRBT(0, width, 0, height)
-        self.gui_camera.viewport = arcade.LRBT(0, width, 0, height)
-
-        self.centrar_camara_en_sala()
-
-
-    def centrar_camara_en_sala(self):
-        """ Hace que el centro de la sala coincida con el centro de la ventana actual """
-        centro_sala_x = (ROOM_LEFT + ROOM_RIGHT) / 2
-        centro_sala_y = (ROOM_BOTTOM + ROOM_TOP) / 2
-        
-        self.camera.move_to((centro_sala_x, centro_sala_y), 1.0)
+            self.lista_armas.draw(filter = GL_NEAREST)
+        else:
+            #Si el ataque ya ha terminado limpiamos la lista
+            if len(self.lista_armas) > 0:
+                self.lista_armas.clear
+            
     
     """"
     --------------------------------------------------------------------------------------
@@ -744,7 +723,7 @@ class GameView(arcade.View):
                     cx, sy + HUD_SLOT_SIZE + 2,
                     C_DARK, font_size=7, anchor_x="center", bold=True
                 )
- 
+
     def _draw_door_highlight(self, side, bloqueada=False):
         half = DOOR_TILES // 2
 
@@ -774,14 +753,13 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(x, x+w, y, y+h, color_relleno + (180,))
         arcade.draw_lrbt_rectangle_outline(x, x+w, y, y+h, color_borde, 2)
 
-
     def __draw_enemy_hp(self, enemigo):                                   
         """Barra de vida pequeña encima de cada enemigo."""               
         bar_w = 40                                                        
         bar_h = 5                                                         
         x = enemigo.center_x - bar_w // 2                                 
         y = enemigo.center_y + enemigo.height // 2 + 6                    
-        pct = max(0.0, enemigo.health / 100)                              
+        pct = max(0.0, enemigo.health / enemigo.max_health)                              
         arcade.draw_lrbt_rectangle_filled(x, x+bar_w, y, y+bar_h, (30, 10, 10))   
         arcade.draw_lrbt_rectangle_filled(x, x+int(bar_w*pct), y, y+bar_h, (180,30,30))  
         arcade.draw_lrbt_rectangle_outline(x, x+bar_w, y, y+bar_h, C_GOLD_DIM, 1) 
@@ -813,7 +791,7 @@ class GameView(arcade.View):
             # Actualizamos el cooldoewn del arma que llevamos.
             arma = self.player_sprite.objeto_equipado()
             if arma is not None:
-                arma.on_update(delta_time)
+                arma.on_update(delta_time, self.player_sprite)
     
             # Actualizamos los motores de los enemigos 
             for i, enemigo in enumerate(self.enemy_list):
@@ -829,9 +807,22 @@ class GameView(arcade.View):
                 # Solo actualizamos el motor si el enemigo sigue en la lista (vivo)
                 if i < len(self.enemy_physics_engines):
                     self.enemy_physics_engines[i].update()
+                    enemigo.update(delta_time)
                 
                 enemigo.update_animation(delta_time)
 
+                # --- NUEVO: SISTEMA ANTIESCAPES ---
+                margen = 200
+                if (enemigo.center_x < -margen or enemigo.center_x > WINDOW_WIDTH + margen or 
+                    enemigo.center_y < -margen or enemigo.center_y > WINDOW_HEIGHT + margen):
+                    print("¡Un enemigo se salió del mapa por un glitch! Eliminándolo...")
+                    enemigo.health = 0 
+                
+
+                #Comprobación colición con personaje
+                if arcade.check_for_collision(enemigo, self.player_sprite):
+                    enemigo.atacar_jugador(self.player_sprite)
+                
         self.__check_doors()
         
         #LLamamos para actualizar la cámara
