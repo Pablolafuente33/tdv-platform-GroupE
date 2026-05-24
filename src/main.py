@@ -11,7 +11,7 @@ from pathlib import Path
 import arcade
 import arcade.gui
 from Entidades.Player import Player
-from Habitaciones import HABITACIONES, OPUESTO
+from habitaciones import HABITACIONES, OPUESTO
 #Para mantener el aspecto retro
 from pyglet.gl import GL_NEAREST
 
@@ -146,8 +146,6 @@ class TitleView(arcade.View):
 
         self.v_box.add(play_button)
         self.v_box.add(settings_button)
-
-        
 
         # Eventos al hacer click en los botones
 
@@ -325,7 +323,6 @@ class GameView(arcade.View):
         self.enemy_list = None
         self.wall_list = None
         self.scene = None
-        self.lista_armas = arcade.SpriteList()
 
         # Motor de física
         self.physics_engine = None
@@ -571,6 +568,10 @@ class GameView(arcade.View):
         for enemigo in self.enemy_list:
             self.__draw_enemy_hp(enemigo)
         
+        arma_equipada = self.player_sprite.objeto_equipado()
+        if arma_equipada is not None:
+            arma_equipada.draw_ataque(self.player_sprite)
+
         # HUD (cámara GUI fija)
         self.gui_camera.use()
         
@@ -584,20 +585,7 @@ class GameView(arcade.View):
                 (180,30,30), font_size=16,                                 
                 anchor_x="center", bold=True                               
             )  
-
-        arma_equipada = self.player_sprite.objeto_equipado()
-        if arma_equipada is not None and arma_equipada.tiempo_visible > 0:
-            if arma_equipada not in self.lista_armas:
-                self.lista_armas.clear()
-                self.lista_armas.append(arma_equipada)
             
-            self.lista_armas.draw(filter = GL_NEAREST)
-        else:
-            #Si el ataque ya ha terminado limpiamos la lista
-            if len(self.lista_armas) > 0:
-                self.lista_armas.clear
-            
-    
     """"
     --------------------------------------------------------------------------------------
     ------------------- Para dibujar el inventario y la barra de vida  -------------------
