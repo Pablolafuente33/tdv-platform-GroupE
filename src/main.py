@@ -961,6 +961,12 @@ class GameView(arcade.View):
                         enemigo.recibir_danno(proyectil.getDanno())
                     proyectil.kill()
 
+                chocado_muro = arcade.check_for_collision_with_list(proyectil, self.wall_list)
+                if len(chocado_muro) > 0:
+                    #si choca contra una parede debe de desaparecer
+                    proyectil.kill() 
+
+
         self.__check_doors()
         
         #LLamamos para actualizar la cámara
@@ -1003,16 +1009,10 @@ class GameView(arcade.View):
             arma_activa = self.player_sprite.objeto_equipado()
             if arma_activa is not None:
                 resultado = arma_activa.use(self.enemy_list,self.player_sprite)
-
                 #Si nos devuelve un proyectil
                 if resultado is not None:
                     self.lista_proyectiles.append(resultado)
 
-        elif key == arcade.key.F11:
-            # Cambia el estado actual (si está en ventana pasa a completa y viceversa)
-            self.window.set_fullscreen(not self.window.fullscreen)
-            return
-        
         #Cambio de objeto de inventario con los números
         if key == arcade.key.KEY_1: 
             self.player_sprite.equipped_index = 0
@@ -1046,6 +1046,8 @@ class GameView(arcade.View):
 
         #Hacemos el cálculo para que la pausa esté bien
         self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
+    
+        
     #Mecánica del scroll de ratón
     def on_mouse_scroll(self,x,y, scroll_x,scroll_y):
         if scroll_y > 0:

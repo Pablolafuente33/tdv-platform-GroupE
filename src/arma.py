@@ -210,22 +210,26 @@ class Proyectil(arcade.Sprite):
         self.velocidad = velocidad
         self.rango = rango
         self.danno = danno
-        self.distancia_recorrida = 0
 
+        self.inicio_x = None
+        self.inicio_y = None
     def getDanno(self):
         return self.danno
 
-    def on_update(self, delta_time):
+    def update(self, delta_time):
+        #PAra saber luego cuanto se ha movido
+        if self.inicio_x is None:
+            self.inicio_x = self.center_x
+            self.inicio_y = self.center_y
+        
         # Movemos la flecha sumando su velocidad
         self.center_x += self.change_x
         self.center_y += self.change_y
         
         # Calculamos cuánto ha avanzado
-        avance = math.sqrt(self.change_x**2 + self.change_y**2)
-        self.distancia_recorrida += avance
-
+        avance = math.sqrt((self.center_x - self.inicio_x)**2 + (self.center_y - self.inicio_y)**2)
         # Si supera su rango máximo de vuelo, se elimina a sí misma
-        if self.distancia_recorrida >= self.rango:
+        if avance >= self.rango:
             self.kill()
 
 class Flecha(Proyectil):
