@@ -299,11 +299,82 @@ class SettingsView(arcade.View):
     def on_hide_view(self):
         self.manager.disable()
 
+class GameOverView(arcade.View):
+    def __init__(self):
+        super().__init__()
+        self.manager = arcade.gui.UIManager()
 
+        graficos = os.path.join('assets', 'graphics') #Cambiar a otro o lo que querais.
+        self.background = arcade.load_texture(os.path.join(graficos, 'fondo_menu.png'))
+        #Lo cambiamos a un nuevo boton
+        self.tex_reiniciar = arcade.load_texture(os.path.join(graficos, 'boton_ajustes.png'))
+        self.tex_salir = arcade.load_texture(os.path.join(graficos, 'boton_pantalla_completa.png'))
+    
+    def on_show_view(self):
+        self.manager.enable()
+        self.setup_gui()
+    
+    def on_hide_view(self):
+        self.manager.disable()
+    
+    def setup_gui(self):
+        self.manager.clear()
+        
+        anchor = arcade.gui.UIAnchorLayout()
+        v_box = arcade.gui.UIBoxLayout(space_between = 10)
+
+        # Botón REINICIAR PARTIDA
+        retry_button = arcade.gui.UITextureButton(
+            texture=self.tex_reiniciar,
+            width=300,
+            height=150
+        )
+        
+        # Botón CERRAR JUEGO
+        exit_button = arcade.gui.UITextureButton(
+            texture=self.tex_salir,
+            width=300,
+            height=150
+        )
+
+        v_box.add(retry_button)
+        v_box.add(exit_button)
+
+        # --- EVENTOS DE LOS BOTONES ---
+        @retry_button.event("on_click")
+        def on_click_retry(event):
+            self.manager.disable()
+            # Creamos una vista de juego totalmente nueva desde cero
+            game_view = GameView()
+            game_view.setup()
+            self.window.show_view(game_view)
+
+        @exit_button.event("on_click")
+        def on_click_exit(event):
+            # Cierra la ventana y finaliza el proceso del programa
+            self.window.close()
+
+        anchor.add(
+            child=v_box, 
+            anchor_x="center", 
+            anchor_y="center", 
+            align_y=-60
+        )
+        self.manager.add(anchor)
+
+    def on_draw(self):
+        self.clear()
+        # Dibujamos el fondo negro o la imagen de Game Over
+        arcade.draw_texture_rect(
+            texture=self.background,
+            rect=arcade.LRBT(0, self.window.width, 0, self.window.height)
+        )
+        self.manager.draw()
 """
--------------------------------------------------------------------------------------
------------             VISTA   GENERAL     DEL     JUEGO           -----------------
--------------------------------------------------------------------------------------
+===========================================================================================================
+=====================       VISTA   GENERAL     DEL     JUEGO      ========================================
+===========================================================================================================
+
 """
 class GameView(arcade.View):
     """
@@ -323,6 +394,8 @@ class GameView(arcade.View):
         self.enemy_list = None
         self.wall_list = None
         self.scene = None
+
+        self.lista_proyectiles = arcade.SpriteList()
 
         # Motor de física
         self.physics_engine = None
@@ -568,10 +641,13 @@ class GameView(arcade.View):
         for enemigo in self.enemy_list:
             self.__draw_enemy_hp(enemigo)
         
+        #Armas cuerpo a cuerpo
         arma_equipada = self.player_sprite.objeto_equipado()
         if arma_equipada is not None:
             arma_equipada.draw_ataque(self.player_sprite)
 
+        #Dibujar los proyectiles    
+        self.lista_proyectiles.draw(filter = GL_NEAREST)
         # HUD (cámara GUI fija)
         self.gui_camera.use()
         
@@ -764,6 +840,17 @@ class GameView(arcade.View):
                     C_DARK, font_size=7, anchor_x="center", bold=True
                 )
 
+    def __draw_enemy_hp(self, enemigo):                                   
+        """Barra de vida pequeña encima de cada enemigo."""               
+        bar_w = 40                                                        
+        bar_h = 5                                                         
+        x = enemigo.center_x - bar_w // 2                                 
+        y = enemigo.center_y + enemigo.height // 2 + 6                    
+        pct = max(0.0, enemigo.health / enemigo.max_health)                              
+        arcade.draw_lrbt_rectangle_filled(x, x+bar_w, y, y+bar_h, (30, 10, 10))   
+        arcade.draw_lrbt_rectangle_filled(x, x+int(bar_w*pct), y, y+bar_h, (180,30,30))  
+        arcade.draw_lrbt_rectangle_outline(x, x+bar_w, y, y+bar_h, C_GOLD_DIM, 1) 
+    
     def _draw_door_highlight(self, side, bloqueada=False):
         half = DOOR_TILES // 2
 
@@ -793,23 +880,26 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(x, x+w, y, y+h, color_relleno + (180,))
         arcade.draw_lrbt_rectangle_outline(x, x+w, y, y+h, color_borde, 2)
 
-    def __draw_enemy_hp(self, enemigo):                                   
-        """Barra de vida pequeña encima de cada enemigo."""               
-        bar_w = 40                                                        
-        bar_h = 5                                                         
-        x = enemigo.center_x - bar_w // 2                                 
-        y = enemigo.center_y + enemigo.height // 2 + 6                    
-        pct = max(0.0, enemigo.health / enemigo.max_health)                              
-        arcade.draw_lrbt_rectangle_filled(x, x+bar_w, y, y+bar_h, (30, 10, 10))   
-        arcade.draw_lrbt_rectangle_filled(x, x+int(bar_w*pct), y, y+bar_h, (180,30,30))  
-        arcade.draw_lrbt_rectangle_outline(x, x+bar_w, y, y+bar_h, C_GOLD_DIM, 1) 
-
     """
     =======================================================================================================================================
     =================================================           ON UPDATE               ===================================================
     =======================================================================================================================================
     """
     def on_update(self, delta_time):
+        jugador = self.player_sprite
+        #primeo de todo comprobamos que el personaje tiene vida:
+        if jugador is not None and jugador.health <= 0:
+            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                self.window.bgm_player.delete()
+                self.window.bgm_player = None
+            self.window.current_bgm_track = None
+
+            arcade.play_sound(self.gameover_sound, volume = 0.5)
+
+            #LAnzamos la pantalla de GameOver
+            self.window.show_view(GameOverView())
+
+            return # Para que no se haga nada más
         #Si no se está haciendo la transición, el personaje se mueve al azar
         if not self.player_locked:
             self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
@@ -858,11 +948,19 @@ class GameView(arcade.View):
                     print("¡Un enemigo se salió del mapa por un glitch! Eliminándolo...")
                     enemigo.health = 0 
                 
-
                 #Comprobación colición con personaje
                 if arcade.check_for_collision(enemigo, self.player_sprite):
                     enemigo.atacar_jugador(self.player_sprite)
-                
+            
+            self.lista_proyectiles.update(delta_time)
+            for proyectil in self.lista_proyectiles:
+                enemigos_alcanzados = arcade.check_for_collision_with_list(proyectil, self.enemy_list)
+                #Comprobar si el proyectil choca con un enemigo
+                if len(enemigos_alcanzados) > 0:
+                    for enemigo in enemigos_alcanzados:
+                        enemigo.recibir_danno(proyectil.getDanno())
+                    proyectil.kill()
+
         self.__check_doors()
         
         #LLamamos para actualizar la cámara
@@ -889,9 +987,6 @@ class GameView(arcade.View):
             title_view = TitleView()
             self.window.show_view(title_view)
             return
-            title_view = TitleView()
-            self.window.show_view(title_view)
-            return
         
         #Teclas para mover el personaje
         if key in [arcade.key.LEFT, arcade.key.A]:
@@ -905,17 +1000,37 @@ class GameView(arcade.View):
         
         # Botón para usar el arma
         elif key == arcade.key.SPACE:
-            self.arma_activa = self.player_sprite.objeto_equipado()
-            self.arma_activa.use(self.enemy_list, self.player_sprite)
-        #Testeo de la barra de vida
-        elif key == arcade.key.F:
-            self.player_sprite.health -= 25
+            arma_activa = self.player_sprite.objeto_equipado()
+            if arma_activa is not None:
+                resultado = arma_activa.use(self.enemy_list,self.player_sprite)
+
+                #Si nos devuelve un proyectil
+                if resultado is not None:
+                    self.lista_proyectiles.append(resultado)
 
         elif key == arcade.key.F11:
             # Cambia el estado actual (si está en ventana pasa a completa y viceversa)
             self.window.set_fullscreen(not self.window.fullscreen)
             return
-            
+        
+        #Cambio de objeto de inventario con los números
+        if key == arcade.key.KEY_1: 
+            self.player_sprite.equipped_index = 0
+        elif key == arcade.key.KEY_2: 
+            self.player_sprite.equipped_index = 1
+        elif key == arcade.key.KEY_3: 
+            self.player_sprite.equipped_index = 2
+        elif key == arcade.key.KEY_4: 
+            self.player_sprite.equipped_index = 3
+        elif key == arcade.key.KEY_5: 
+            self.player_sprite.equipped_index = 4
+        
+        #Cambio de los objetos con las flechas
+        if key == arcade.key.RIGHT:
+            self.player_sprite.objeto_siguiente()
+        elif key == arcade.key.LEFT:
+            self.player_sprite.objeto_anterior()
+
         #Calculamos la nueva posición
         self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
     

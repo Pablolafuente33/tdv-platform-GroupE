@@ -5,7 +5,7 @@ from constantes import RIGHT, UP, LEFT, DOWN
 
 
 class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo 
-    def __init__(self, danno , rango , cooldown, imagen, escala, nombre):        
+    def __init__(self, danno , rango , cooldown, imagen, escala, nombre, dur_ataque):        
         super().__init__(imagen, escala)
         self.danno = danno
         self.rango = rango
@@ -15,7 +15,7 @@ class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo
         self.atacar = True
 
         self.tiempo_visible = 0.0
-        self.dur_ataque = 0.1
+        self.dur_ataque = dur_ataque
                 
     def getDanno(self):
         return self.danno
@@ -57,9 +57,10 @@ class Espada(ArmaCuerpoACuerpo):
             danno       = 30,
             rango       = 60,
             cooldown    = 1,
-            imagen      = os.path.join('assets','espada.png'),
+            imagen      = os.path.join('assets','objects','espada.png'),
             escala      = 0.4,
             nombre      = "Espada",
+            dur_ataque  = 0.1 
         )
 
     def calcular_impactos(self, enemy_list, player_sprite):
@@ -128,33 +129,178 @@ class Espada(ArmaCuerpoACuerpo):
             line_width=10
         )
 
+class Lanza(ArmaCuerpoACuerpo):
+    def __init__(self):
+        super().__init__(
+            danno       = 20, # Menos daño que la espada
+            rango       = 100, # ¡Pero casi el doble de alcance!
+            cooldown    = 0.8,
+            imagen      = os.path.join('assets','objects','lanza.png'),
+            escala      = 0.4,
+            nombre      = "Lanza",
+            dur_ataque  = 0.2, # Un poco más lenta
+        )
+
+    def draw_ataque(self, player_sprite):
+        if self.tiempo_visible <= 0:
+            return
+
+        # Para la estocada, calculamos cuánto sale el arma (de 0 al máximo y vuelve a 0)
+        # Usamos una parábola matemática sencilla con el progreso
+        progreso = 1.0 - (self.tiempo_visible / self.dur_ataque)
+        
+        # Esto hace que el arma salga hasta el rango máximo en la mitad del tiempo y luego retroceda
+        extension = math.sin(progreso * math.pi) * self.rango
+
+        inicio_x = player_sprite.center_x
+        inicio_y = player_sprite.center_y
+        fin_x = inicio_x
+        fin_y = inicio_y
+
+        # Direcciones: 0 (Der), 1 (Izq), 2 (Abajo), 3 (Arriba)
+        if player_sprite.facing_direction == 0:
+            fin_x += extension
+        elif player_sprite.facing_direction == 1:
+            fin_x -= extension
+        elif player_sprite.facing_direction == 2: 
+            fin_y -= extension
+        elif player_sprite.facing_direction == 3: 
+            fin_y += extension
+
+        # Dibujamos una línea recta hacia adelante (color marrón madera)
+        arcade.draw_line(
+            start_x=inicio_x, start_y=inicio_y, 
+            end_x=fin_x, end_y=fin_y, 
+            color=arcade.csscolor.SADDLE_BROWN, 
+            line_width=6 # Más fina que la espada
+        )
+        """
+        arcade.draw_triangle_filled(
+
+        )"""
+
+    def calcular_impactos(self, enemy_list, player_sprite):
+        for enemy in enemy_list:
+            dx = enemy.center_x - player_sprite.center_x
+            dy = enemy.center_y - player_sprite.center_y
+            distancia_real = math.sqrt(dx**2 + dy**2)
+            distancia_al_borde = distancia_real - (enemy.width / 2)
+            
+            if distancia_al_borde <= self.rango:
+                # Para la lanza, el margen de desalineación es muchísimo menor (es un ataque muy estrecho)
+                margen_lateral = 15 
+                
+                # Comprobamos que esté en la dirección correcta y bien alineado
+                if player_sprite.facing_direction == 0 and dx > 0 and abs(dy) < margen_lateral:
+                    enemy.recibir_danno(self.danno)
+                elif player_sprite.facing_direction == 1 and dx < 0 and abs(dy) < margen_lateral:
+                    enemy.recibir_danno(self.danno)
+                elif player_sprite.facing_direction == 2 and dy < 0 and abs(dx) < margen_lateral:
+                    enemy.recibir_danno(self.danno)
+                elif player_sprite.facing_direction == 3 and dy > 0 and abs(dx) < margen_lateral:
+                    enemy.recibir_danno(self.danno)
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Esto es lo que se va a ver que va a ir viajando por la pantalla
 
-class Proyectil(arcade.Sprite): #base para proyectiles de armas a distancia
-
+class Proyectil(arcade.Sprite): 
     def __init__(self, velocidad, rango, danno, imagen, escala):
-        super().__init__(self, imagen, escala)
+        # OJO: Eliminado el 'self' de dentro del super().__init__
+        super().__init__(imagen, escala)
+        self.velocidad = velocidad
+        self.rango = rango
+        self.danno = danno
+        self.distancia_recorrida = 0
+
     def getDanno(self):
         return self.danno
 
+    def on_update(self, delta_time):
+        # Movemos la flecha sumando su velocidad
+        self.center_x += self.change_x
+        self.center_y += self.change_y
+        
+        # Calculamos cuánto ha avanzado
+        avance = math.sqrt(self.change_x**2 + self.change_y**2)
+        self.distancia_recorrida += avance
+
+        # Si supera su rango máximo de vuelo, se elimina a sí misma
+        if self.distancia_recorrida >= self.rango:
+            self.kill()
+
+class Flecha(Proyectil):
+    def __init__(self, start_x, start_y, direccion):
+        super().__init__(
+            velocidad = 10, 
+            rango     = 400, 
+            danno     = 15, 
+            imagen    = os.path.join('assets','objects','lanza.png'), # Asegúrate de tener este PNG
+            escala    = 0.1
+        )
+        self.center_x = start_x
+        self.center_y = start_y
+
+        # Direcciones: 0 (Der), 1 (Izq), 2 (Abajo), 3 (Arriba)dw
+        if direccion == 0:
+            self.change_x = self.velocidad
+            self.angle = 0
+        elif direccion == 1:
+            self.change_x = -self.velocidad
+            self.angle = 180
+        elif direccion == 2:
+            self.change_y = -self.velocidad
+            self.angle = 270
+        elif direccion == 3:
+            self.change_y = self.velocidad
+            self.angle = 90
+
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Esto es lo que va a lanzar el proyectil
-class ArmaDistancia(arcade.Sprite): #base para varias armas a distancia 
+class ArmaDistancia(arcade.Sprite): 
+    def __init__(self, cooldown, imagen, escala, nombre):
+        super().__init__(imagen, escala)
+        self.cooldown_max = cooldown
+        self.cooldown = 0
+        self.atacar = True
+        self.nombre = nombre
 
-    def __init__(self, imagen, escala, cooldown):
-        super().__init__(self, imagen, escala)
-
-    def on_update(self, delta_time):
+    def on_update(self, delta_time, player_sprite = None):
         if self.cooldown > 0:
             self.cooldown -= delta_time 
             self.atacar = False
-
         if self.cooldown <= 0:
             self.cooldown = 0
             self.atacar = True
 
-    def getCooldown(self):
-        return self.atacar
+    # Para disparar, devolveremos el objeto Proyectil creado
+    def use(self, enemy_list, player_sprite):
+        if self.atacar:
+            self.atacar = False
+            self.cooldown = self.cooldown_max
+            return self.disparar(player_sprite)
+        return None
+        
+    def disparar(self, player_sprite):
+        pass # A definir por cada arma hija
+
+    def draw_ataque(self, player_sprite):
+        pass
+
+class Arco(ArmaDistancia):
+    def __init__(self):
+        super().__init__(
+            cooldown = 1.0, 
+            imagen   = os.path.join('assets','objects','lanza.png'), 
+            escala   = 0.4,
+            nombre   = "Arco"
+        )
+
+    def disparar(self, player_sprite):
+        # Creamos una flecha en la posición del jugador apuntando hacia donde mira
+        nueva_flecha = Flecha(
+            start_x = player_sprite.center_x,
+            start_y = player_sprite.center_y,
+            direccion = player_sprite.facing_direction
+        )
+        return nueva_flecha
     
