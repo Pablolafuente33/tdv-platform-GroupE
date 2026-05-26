@@ -9,10 +9,12 @@ class SettingsView(arcade.View):
         self.manager = arcade.gui.UIManager()
         
         graficos = os.path.join('assets', 'graphics')
+        botones = os.path.join('assets', 'botones')
+        
         self.background = arcade.load_texture(os.path.join(graficos, 'fondo_ajustes.png'))
-        self.tex_volumen = arcade.load_texture(os.path.join(graficos, 'boton_volumen.png'))
-        self.tex_pantalla = arcade.load_texture(os.path.join(graficos, 'boton_pantalla_completa.png'))
-        self.tex_volver = arcade.load_texture(os.path.join(graficos, 'boton_volver.png'))
+        self.tex_volumen = arcade.load_texture(os.path.join(botones, 'boton_volumen.png'))
+        self.tex_pantalla = arcade.load_texture(os.path.join(botones, 'boton_pantalla_completa.png'))
+        self.tex_volver = arcade.load_texture(os.path.join(botones, 'boton_volver.png'))
 
 
     def on_show_view(self):

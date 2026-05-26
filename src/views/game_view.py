@@ -53,6 +53,8 @@ class GameView(arcade.View):
 
         self.movimiento_camara = False
         
+        self.tiempo_jugado = 0.0
+        self.nombre_partida = "Nueva_partida"
         #Sonidos
         self.gameover_sound = arcade.load_sound(":resources:sounds/gameover1.wav")
         self.music_game = arcade.load_sound(os.path.join('assets', 'music', 'GameSound.mp3'), streaming=True)
@@ -153,7 +155,6 @@ class GameView(arcade.View):
                             
                     self.window.bgm_player = self.music_game.play(loop=True, volume=volumen_actual)
                     self.window.current_bgm_track = "game"
-
 
     def __door_rect(self,side): #Definimos la función como privada ya que solo se va a utilizar aquí
         margin = 12
@@ -525,6 +526,9 @@ class GameView(arcade.View):
     =======================================================================================================================================
     """
     def on_update(self, delta_time):
+        # Tiempo que lleva jugado:
+        self.tiempo_total_jugado += delta_time
+
         jugador = self.player_sprite
         #primeo de todo comprobamos que el personaje tiene vida:
         if jugador is not None and jugador.health <= 0:
@@ -605,7 +609,6 @@ class GameView(arcade.View):
                     #si choca contra una parede debe de desaparecer
                     proyectil.kill() 
 
-
         self.__check_doors()
         
         #LLamamos para actualizar la cámara
@@ -613,6 +616,32 @@ class GameView(arcade.View):
         
         # Actualizamos la animación del personaje
         self.player_sprite.update_animation_state(delta_time)
+    
+    def guardar_progreso(self,):
+        """Recopila todo el estado actual del juego y lo guarda en la carpeta de saves"""
+        
+        datos = {
+            "nombre_partida": self.nombre_partida,
+            "tiempo_jugado_segundos": self.tiempo_total_jugado,
+            "sala_actual": self.current_room_path,  # La ruta del .tmx actual (ej: "assets/maps/room1.tmx")
+            "jugador": {
+                "vida": self.player_sprite.vida,
+                "pos_x": self.player_sprite.center_x,
+                "pos_y": self.player_sprite.center_y
+            },
+            "jefes_derrotados": {
+                # Aquí puedes meter vuestras variables tipo: self.jefe1_muerto (True/False)
+                "jefe_1": getattr(self, "jefe1_muerto", False), 
+            }
+        }
+        
+        ruta = os.path.join( "saves", f"{self.nombre_partida}.json")
+        os.makedirs(os.path.dirname(ruta), exist_ok=True)
+        
+        with open(ruta, "w", encoding="utf-8") as f:
+            json.dump(datos, f, indent=4, ensure_ascii=False)
+            
+        print(f"¡Partida guardada con éxito en {ruta}!")
     """
     ============================================================================================================
     =====================================  INPUT DEL USUARIO  ==================================================

@@ -11,11 +11,12 @@ class PauseView(arcade.View):
         
         # Cargamos los gráficos (reutilizando los que ya tienes)
         graficos = os.path.join('assets', 'graphics')
-        self.background = arcade.load_texture(os.path.join(graficos, 'fondo_menu.png'))
-        self.tex_reanudar = arcade.load_texture(os.path.join(graficos, 'boton_jugar.png'))
-        self.tex_pantalla = arcade.load_texture(os.path.join(graficos, 'boton_pantalla_completa.png'))
-        self.tex_reiniciar = arcade.load_texture(os.path.join(graficos, 'boton_ajustes.png')) 
-        self.tex_volumen = arcade.load_texture(os.path.join(graficos, 'boton_volumen.png'))
+        botones = os.path.join('assets', 'botones')
+        self.background = arcade.load_texture(os.path.join(graficos, 'pausa.png'))
+        self.tex_reanudar = arcade.load_texture(os.path.join(botones, 'boton_jugar.png'))
+        self.tex_reiniciar = arcade.load_texture(os.path.join(botones, 'boton_reiniciar.png')) 
+        self.tex_volumen = arcade.load_texture(os.path.join(botones, 'boton_volumen.png'))
+        self.guardar_partida = arcade.load_texture(os.path.join(botones, 'boton_guardar_partida.png'))
 
     def on_show_view(self):
         self.window.ctx.viewport = (0, 0, self.window.width, self.window.height)
@@ -26,16 +27,11 @@ class PauseView(arcade.View):
     def on_hide_view(self):
         self.manager.disable()
     
-    def on_resize(self, width, height):
-        print(f"[PauseView] on_resize llamado: {width}x{height}")
-        self.window.ctx.projection_2d = (0, width, 0, height)
-        self.setup_gui()
-    
     def setup_gui(self):
         self.manager.clear()
         
         anchor = arcade.gui.UIAnchorLayout()
-        v_box = arcade.gui.UIBoxLayout(space_between=10)
+        v_box = arcade.gui.UIBoxLayout(space_between=3)
 
         # --- FILA DE VOLUMEN (Horizontal) ---
         h_box_volume = arcade.gui.UIBoxLayout(vertical=False, space_between=10)
@@ -55,20 +51,21 @@ class PauseView(arcade.View):
             texture=self.tex_reanudar, 
             width=250, 
             height=125)
-        fullscreen_btn = arcade.gui.UITextureButton(
-            texture=self.tex_pantalla, 
-            width=250, 
-            height=125)
         retry_btn = arcade.gui.UITextureButton(
             texture=self.tex_reiniciar, 
+            width=350, 
+            height=150)
+        guardar_btn = arcade.gui.UITextureButton(
+            texture = self.guardar_partida,
             width=250, 
-            height=125)
+            height=125
+        )
 
         # Los añadimos al contenedor vertical
         v_box.add(h_box_volume)
         v_box.add(resume_btn)
-        v_box.add(fullscreen_btn)
         v_box.add(retry_btn)
+        v_box.add(guardar_btn)
 
         # --- EVENTOS ---
         
@@ -84,11 +81,6 @@ class PauseView(arcade.View):
             #Volvemos a donde estábamos
             self.game_view.camera.use()
             self.window.show_view(self.game_view)
-
-        @fullscreen_btn.event("on_click")        
-        def on_click_fullscreen(event):
-            self.window.set_fullscreen(not self.window.fullscreen)
-            self.on_resize(self.window.width, self.window.height)
         
         @retry_btn.event("on_click")
         def on_click_retry(event):
@@ -97,7 +89,6 @@ class PauseView(arcade.View):
 
             from views.title import TitleView
             nuevo_juego = TitleView()
-            nuevo_juego.setup()
             self.window.show_view(nuevo_juego)
 
         # Centramos todo el panel en pantalla
@@ -105,11 +96,9 @@ class PauseView(arcade.View):
             child=v_box, 
             anchor_x="center", 
             anchor_y="center",
-            align_y=-40
+            align_y=-60
         )
         self.manager.add(anchor)
-
-    
 
     def on_draw(self):
         self.clear()
