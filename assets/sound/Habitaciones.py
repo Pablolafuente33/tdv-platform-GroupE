@@ -7,7 +7,7 @@ de forma diferente porque no todas vana a tener las  mismas puertas.
 """
 
 import arcade
-from personajes import EsqueletoEnemigo, DuendeEnemigo, CocodriloEnemigo
+from Entidades.Enemigos import EsqueletoEnemigo, DuendeEnemigo, CocodriloEnemigo
 
 # ConstaNTES DE VENTANA
 WINDOW_WIDTH = 1280

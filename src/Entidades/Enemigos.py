@@ -3,7 +3,8 @@ import math
 import random
 
 from pathlib import Path
-
+from Entidades.gestor_animaciones import Gestor_animaciones
+import os
 import arcade
 
 from arma import Espada 
@@ -14,32 +15,6 @@ LEFT_FACING = 1
 UP_FACING = 2
 DOWN_FACING = 3
 
-class Character(arcade.Sprite):
-    def __init__(self, name_folder, name_file):
-        super().__init__()
-
-        self.facing_direction = RIGHT_FACING
-        self.cur_texture = 0
-
-        main_path = f":resources:images/animated_characters/{name_folder}/{name_file}"
-        
-        # Guardamos la textura de que está quieto
-        idle_texture = arcade.load_texture(f"{main_path}_idle.png")
-        
-        # Make pairs with left and right facing textures
-        self.idle_texture_pair = idle_texture, idle_texture.flip_left_right()
-        
-        # Load textures for walking with left and right facing textures
-        self.walk_textures = []
-        for i in range(8):
-            texture = arcade.load_texture(f"{main_path}_walk{i}.png")
-            self.walk_textures.append((texture, texture.flip_left_right()))
-
-        # This variable will change dynamically and will represent the currently
-        # active texture.
-        self.texture = self.idle_texture_pair[0]
-
-
 
 """
 =============================================================================================================================
@@ -47,13 +22,12 @@ class Character(arcade.Sprite):
 =============================================================================================================================
 """
 
-class Enemigo(Character):
-    def __init__(self, nombre_carpeta, nombre_archivo):
-        super().__init__(nombre_carpeta, nombre_archivo)
+class Enemigo(arcade.TextureAnimationSprite):
+    def __init__(self):
+        super().__init__()
         self.velocidad = 0
         self.health = 0
         self.max_health = 0
-        self.should_update_walk = 0
         self.detect_distance = 250
         self.vivo = True
         self.cambio_direccion_timer = 0
@@ -63,35 +37,7 @@ class Enemigo(Character):
         self.coolldown_max = 0
         self.cooldown = 0
 
-    def update_animation(self, delta_time: float):
-        # 1. Determinar la dirección
-        if self.change_x < 0:
-            self.facing_direction = LEFT_FACING
-        elif self.change_x > 0:
-            self.facing_direction = RIGHT_FACING
-        elif self.change_y > 0:
-            self.facing_direction = UP_FACING
-        elif self.change_y < 0:
-            self.facing_direction = DOWN_FACING
-
-        # Si el enemigo está quieto
-        if self.change_x == 0 and self.change_y == 0:
-            if self.facing_direction in [UP_FACING, DOWN_FACING]:
-                self.texture = self.idle_texture_pair[0]
-            else:
-                self.texture = self.idle_texture_pair[self.facing_direction]
-            return
-
-        self.should_update_walk += 1
-        if self.should_update_walk > 5:
-            self.cur_texture += 1
-            
-            if self.cur_texture > 7: 
-                    self.cur_texture = 0
-                
-            visual_dir = self.facing_direction if self.facing_direction in [0, 1] else 0
-            self.texture = self.walk_textures[self.cur_texture][visual_dir]
-            self.should_update_walk = 0
+    
 
     def seguir_jugador(self, jugador):
         
@@ -110,6 +56,8 @@ class Enemigo(Character):
         else:
             self.change_x = 0
             self.change_y = 0
+
+        
             
     def caminar_aleatorio(self, delta_time):
         self.cambio_direccion_timer += delta_time
@@ -130,6 +78,8 @@ class Enemigo(Character):
                 
             self.cambio_direccion_timer = 0 
 
+        self.update_animation_state(delta_time)
+
     def recibir_danno(self, cantidad):
 
         #Aquí deberia de azctualizrse, comprobar si hay colisión ocn otro sprite de una arma
@@ -142,6 +92,8 @@ class Enemigo(Character):
         if self.cooldown > 0:
             self.cooldown -= delta_time
 
+        self.caminar_aleatorio(delta_time)
+
     def atacar_jugador (self, jugador):
         if self.cooldown <= 0:
             jugador.health -= self.danno
@@ -150,7 +102,7 @@ class Enemigo(Character):
 
 class EsqueletoEnemigo(Enemigo):
     def __init__(self):
-        super().__init__("robot", "robot")
+        super().__init__()
         self.health = 100
         self.max_health = 100
         self.velocidad = 2
@@ -159,10 +111,26 @@ class EsqueletoEnemigo(Enemigo):
         self.danno = 10
         self.coolldown_max = 10
         self.cooldown = 0
+
+        self.scale = 2.5
+
+        #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
+        self.gestor_animaciones = Gestor_animaciones(
+            sprite=self,
+            spritesheet_path = os.path.join('assets','graphics','Enemigo_1Spritesheet.png'),
+            tamanno_sprite= (64, 64),
+            columns= 6,
+            count=6,
+            duracion= 150
+        )
+
+
+    def update_animation_state(self, delta_time):
+        self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
         
 class DuendeEnemigo(Enemigo):
     def __init__(self):
-        super().__init__("zombie", "zombie")
+        super().__init__()
         self.health = 50
         self.max_health = 50
         self.velocidad = 3
@@ -171,9 +139,27 @@ class DuendeEnemigo(Enemigo):
         self.danno = 25
         self.coolldown_max = 7
         self.cooldown = 0
+
+        self.scale = 2.5
+
+        #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
+        self.gestor_animaciones = Gestor_animaciones(
+            sprite=self,
+            spritesheet_path = os.path.join('assets','graphics','Enemigo_2.png'),
+            tamanno_sprite= (64, 64),
+            columns= 6,
+            count=6,
+            duracion= 150
+        )
+
+
+    def update_animation_state(self, delta_time):
+        self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
+
+
 class CocodriloEnemigo(Enemigo):
     def __init__(self):
-        super().__init__("male_adventurer", "maleAdventurer")
+        super().__init__()
         self.health = 150
         self.max_health = 150
         self.velocidad = 1.5
@@ -182,3 +168,20 @@ class CocodriloEnemigo(Enemigo):
         self.danno = 5
         self.coolldown_max = 2
         self.cooldown = 0
+
+        self.scale = 2.5
+
+
+        #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
+        self.gestor_animaciones = Gestor_animaciones(
+            sprite=self,
+            spritesheet_path = os.path.join('assets','graphics','Boss_1.png'),
+            tamanno_sprite= (64, 64),
+            columns= 6,
+            count=6,
+            duracion= 150
+        )
+
+
+    def update_animation_state(self, delta_time):
+        self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
