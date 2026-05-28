@@ -55,6 +55,7 @@ class GameView(arcade.View):
         
         self.tiempo_jugado = 0.0
         self.nombre_partida = "Nueva_partida"
+        self.dificultad = "Normal"
         #Sonidos
         self.gameover_sound = arcade.load_sound(":resources:sounds/gameover1.wav")
         self.music_game = arcade.load_sound(os.path.join('assets', 'music', 'GameSound.mp3'), streaming=True)
@@ -64,12 +65,21 @@ class GameView(arcade.View):
     ===============================================     SETUP     =====================================================
     ===================================================================================================================
     """
-    def setup(self, room_id: int = 0, enter_from: str = None):
-        #Para la inicialización veremos en que sala está y de que sala viene
-        self.current_room_id = room_id
-        self.background_color= arcade.color.BLACK
+    def setup(self, room_id: int = 0, enter_from: str = None, datos_carga: dict = None):
+         #Para la inicialización veremos en que sala está y de que sala viene
+        if datos_carga is not None:
+            self.nombre_partida = datos_carga["nombre_partida"]
+            self.current_room_id = datos_carga["sala_actual"]
+            self.tiempo_jugado = datos_carga["tiempo_jugado_segundos"]
+            self.dificultad = datos_carga["dificultad"]
+        else:
+            # si no hay datos o es cambio de sala
+            self.current_room_id = room_id
+        
+        self.background_color = arcade.color.BLACK
         self.door_rects = []
-        room = HABITACIONES[room_id]
+        # Carganmos la habitación que corresponda
+        room = HABITACIONES[self.current_room_id]
 
         #Cargamos el tilemap y obtenemos la escena
         self.scene = room.construir_habitacion()
@@ -99,24 +109,50 @@ class GameView(arcade.View):
         #Será inicializado en la puerta de la sala en la que entra.
         self.player_sprite.change_y = 0
         self.player_sprite.change_x = 0
-        sx, sy = self.__spawn_pos(enter_from)        
-        self.player_sprite.center_x = sx
-        self.player_sprite.center_y = sy
+        if datos_carga is not None:
+            self.player_sprite.center_x = datos_carga["jugador"]["pos_x"]
+            self.player_sprite.center_y = datos_carga["jugador"]["pos_y"]
+            self.player_sprite.health = datos_carga["jugador"]["vida"]
+        else :
+            sx, sy = self.__spawn_pos(enter_from)        
+            self.player_sprite.center_x = sx
+            self.player_sprite.center_y = sy
 
         self.scene.add_sprite("Player", self.player_sprite)
+
+        self.enemy_list = arcade.SpriteList()
+
+        if datos_carga is not None:
+            from Entidades.Enemigos import EsqueletoEnemigo, DuendeEnemigo, CocodriloEnemigo
+            for datos_enemigos in datos_carga["enemigos_vivos"]:
+                clase = datos_enemigos["clase_enemigo"]
+                if clase == "EsqueletoEnemigo":
+                    nuevo_enemigo = EsqueletoEnemigo()
+                elif clase == "DuendeEnemigo":
+                    nuevo_enemigo = DuendeEnemigo()
+                elif clase == "CocodriloEnemigo":
+                    nuevo_enemigo = CocodriloEnemigo()
+                else:
+                    continue
+
+                #Le damos los dátos que tenían
+                nuevo_enemigo.center_x = datos_enemigos["pos_x"]
+                nuevo_enemigo.center_y = datos_enemigos["pos_y"]
+                nuevo_enemigo.health = datos_enemigos["vida_actual"]
+                nuevo_enemigo.cooldown = datos_enemigos["cooldown_actual"]
+                
+                self.enemy_list.append(nuevo_enemigo)
+        else:
+            if not room.nivel_pasado:
+                for enemigo in room.spawn():
+                    self.enemy_list.append(enemigo)
+            
+        self.scene.add_sprite_list("Enemigos", sprite_list = self.enemy_list)
 
         # Motor del jugador 
         self.physics_engine = arcade.PhysicsEngineSimple(
             self.player_sprite, [self.wall_list, self.scene["puertas_cerradas"]]
         )
-
-        # Enemigos, se crean en cada sala                         
-        self.enemy_list = arcade.SpriteList()                              
-        if not room.nivel_pasado:
-            for enemigo in room.spawn():
-                self.enemy_list.append(enemigo)
-
-        self.scene.add_sprite_list("Enemigos", sprite_list = self.enemy_list)
 
         # Creamos una lista para los motores de los enemigos
         self.enemy_physics_engines = []
@@ -137,7 +173,7 @@ class GameView(arcade.View):
         self.cam_target_y = WINDOW_HEIGHT / 2
 
         #Si venimos de otra sala habrá transición en la cámara
-        if enter_from is not None:
+        if enter_from is not None and datos_carga is None:
             self.movimiento_camara = True
         else:
             #En el caso de la primera sala
@@ -199,52 +235,65 @@ class GameView(arcade.View):
         return cx, cy
     
     def __check_doors(self):
-        #Solo si la cámara no está en transición
-        if self.movimiento_camara:
-            return
-        
-        # Bloqueo de puertas si hay enemigos vivos                         
-        if len(self.enemy_list) > 0:                                       
-            return    
+            # Solo si la cámara no está en transición
+            if self.movimiento_camara:
+                return
+            
+            # Bloqueo de puertas si hay enemigos vivos                           
+            if len(self.enemy_list) > 0:                                       
+                return    
+                
             # Obtenemos las dimensiones reales del mapa actual en píxeles
-        tilemap = HABITACIONES[self.current_room_id].tile_map
-        map_width = tilemap.width * tilemap.tile_width * tilemap.scaling
-        map_height = tilemap.height * tilemap.tile_height * tilemap.scaling
-        
-        # Posición del jugador
-        px = self.player_sprite.center_x
-        py = self.player_sprite.center_y
-        
-        # Un margen de activación. Si el jugador está a menos de 90 píxeles de un borde,
-        # asumimos que está intentando cruzar una puerta en ese lado.
-        margen = 90 
-        lado_tocado = None
-        
-        # Comprobamos los 4 extremos del mapa
-        if px < margen:
-            lado_tocado = 'l'  # Izquierda (Left)
-        elif px > map_width - margen:
-            lado_tocado = 'r'  # Derecha (Right)
-        elif py < (margen+10):
-            lado_tocado = 'd'  # Abajo (Down)
-        elif py > map_height - (margen+10):
-            lado_tocado = 'u'  # Arriba (Up)
+            tilemap = HABITACIONES[self.current_room_id].tile_map
+            map_width = tilemap.width * tilemap.tile_width * tilemap.scaling
+            map_height = tilemap.height * tilemap.tile_height * tilemap.scaling
             
-        # Si el jugador ha llegado a un extremo del mapa...
-        if lado_tocado is not None:
-            habitacion_actual = HABITACIONES[self.current_room_id]
+            # Posición del jugador
+            px = self.player_sprite.center_x
+            py = self.player_sprite.center_y
             
-            # Buscamos si la habitación actual tiene una puerta registrada en ese lado
-            for puerta_codigo in habitacion_actual.puertas:
-                if puerta_codigo.side == lado_tocado:
-                    print(f"¡Puerta cruzada por el lado {lado_tocado}! Viajando a la sala {puerta_codigo.leads_to}")
-                    
-                    # Cambiamos de sala
-                    self.setup(
-                        room_id=puerta_codigo.leads_to, 
-                        enter_from=OPUESTO[puerta_codigo.side]
-                    )
-                    return
+            # Puntos medios de la pantalla/mapa
+            mid_x = map_width / 2
+            mid_y = map_height / 2
+            
+            # CONFIGURACIÓN DE MÁRGENES
+            margen = 88          # Distancia al borde del mapa
+            ancho_puerta = 60   # Tolerancia de movimiento respecto al centro del muro
+            
+            lado_tocado = None
+            
+            # Comprobamos los 4 extremos del mapa asegurando que esté en el CENTRO del muro
+            # Izquierda: X cerca de 0 Y en el centro
+            if px < margen and (mid_y - ancho_puerta < py < mid_y + ancho_puerta):
+                lado_tocado = 'l'  
+                
+            # Derecha: X cerca del final Y en el centro
+            elif px > map_width - margen and (mid_y - ancho_puerta < py < mid_y + ancho_puerta):
+                lado_tocado = 'r'  
+                
+            # Abajo: Y cerca de 0 X en el centro
+            elif py < (margen + 10) and (mid_x - 50 - ancho_puerta < px < mid_x - 50 + ancho_puerta):
+                lado_tocado = 'd'  
+                
+            # Arriba: Y cerca del final X en el centro
+            elif py > map_height - (margen + 10) and (mid_x - 50 - ancho_puerta < px < mid_x - 50 + ancho_puerta):
+                lado_tocado = 'u'  
+                
+            # Si el jugador ha cruzado por el hueco exacto...
+            if lado_tocado is not None:
+                habitacion_actual = HABITACIONES[self.current_room_id]
+                
+                # Buscamos si la habitación actual tiene una puerta registrada en ese lado
+                for puerta_codigo in habitacion_actual.puertas:
+                    if puerta_codigo.side == lado_tocado:
+                        print(f"¡Puerta cruzada por el lado {lado_tocado}! Viajando a la sala {puerta_codigo.leads_to}")
+                        
+                        # Cambiamos de sala
+                        self.setup(
+                            room_id=puerta_codigo.leads_to, 
+                            enter_from=OPUESTO[puerta_codigo.side]
+                        )
+                        return
             
     def __update_camera(self, delta_time):
         #Desliz suavemente hacia el objetivo
@@ -529,7 +578,7 @@ class GameView(arcade.View):
     """
     def on_update(self, delta_time):
         # Tiempo que lleva jugado:
-        self.tiempo_total_jugado += delta_time
+        self.tiempo_jugado += delta_time
 
         jugador = self.player_sprite
         #primeo de todo comprobamos que el personaje tiene vida:
@@ -645,8 +694,9 @@ class GameView(arcade.View):
             lista_enemigos.append(datos_enemigo)
         datos = {
             "nombre_partida": self.nombre_partida,
-            "tiempo_jugado_segundos": self.tiempo_total_jugado,
-            "sala_actual": self.current_room_id,  # La ruta del .tmx actual (ej: "assets/maps/room1.tmx")
+            "tiempo_jugado_segundos": self.tiempo_jugado,
+            "dificultad" : self.dificultad,
+            "sala_actual": self.current_room_id,  
             "jugador": {
                 "vida": self.player_sprite.health,
                 "pos_x": self.player_sprite.center_x,
@@ -742,8 +792,6 @@ class GameView(arcade.View):
         elif key in [arcade.key.S]:
             self.down_pressed = False
 
-        #Hacemos el cálculo para que la pausa esté bien
-        self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
     
     #Mecánica del scroll de ratón
     def on_mouse_scroll(self,x,y, scroll_x,scroll_y):

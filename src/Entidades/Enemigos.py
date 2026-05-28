@@ -94,12 +94,16 @@ class Enemigo(arcade.TextureAnimationSprite):
 
         self.caminar_aleatorio(delta_time)
 
+        self.update_animation_state(delta_time)
+
     def atacar_jugador (self, jugador):
         if self.cooldown <= 0:
             jugador.health -= self.danno
             self.cooldown = self.coolldown_max
             print(f'Enemigo ataca !! Vida jugador {jugador.health}')
 
+    def update_animation_state(self,delta_time):
+        pass
 class EsqueletoEnemigo(Enemigo):
     def __init__(self):
         super().__init__()
@@ -152,7 +156,7 @@ class DuendeEnemigo(Enemigo):
             duracion= 150
         )
 
-
+    
     def update_animation_state(self, delta_time):
         self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
 
