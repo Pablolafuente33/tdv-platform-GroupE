@@ -55,6 +55,7 @@ class GameView(arcade.View):
         
         self.tiempo_jugado = 0.0
         self.nombre_partida = "Nueva_partida"
+        self.dificultad = "Normal"
         #Sonidos
         self.gameover_sound = arcade.load_sound(":resources:sounds/gameover1.wav")
         self.music_game = arcade.load_sound(os.path.join('assets', 'music', 'GameSound.mp3'), streaming=True)
@@ -64,12 +65,21 @@ class GameView(arcade.View):
     ===============================================     SETUP     =====================================================
     ===================================================================================================================
     """
-    def setup(self, room_id: int = 0, enter_from: str = None):
-        #Para la inicialización veremos en que sala está y de que sala viene
-        self.current_room_id = room_id
-        self.background_color= arcade.color.BLACK
+    def setup(self, room_id: int = 0, enter_from: str = None, datos_carga: dict = None):
+         #Para la inicialización veremos en que sala está y de que sala viene
+        if datos_carga is not None:
+            self.nombre_partida = datos_carga["nombre_partida"]
+            self.current_room_id = datos_carga["sala_actual"]
+            self.tiempo_jugado = datos_carga["tiempo_jugado_segundos"]
+            self.dificultad = datos_carga["dificultad"]
+        else:
+            # si no hay datos o es cambio de sala
+            self.current_room_id = room_id
+        
+        self.background_color = arcade.color.BLACK
         self.door_rects = []
-        room = HABITACIONES[room_id]
+        # Carganmos la habitación que corresponda
+        room = HABITACIONES[self.current_room_id]
 
         #Cargamos el tilemap y obtenemos la escena
         self.scene = room.construir_habitacion()
@@ -97,24 +107,50 @@ class GameView(arcade.View):
         #Será inicializado en la puerta de la sala en la que entra.
         self.player_sprite.change_y = 0
         self.player_sprite.change_x = 0
-        sx, sy = self.__spawn_pos(enter_from)        
-        self.player_sprite.center_x = sx
-        self.player_sprite.center_y = sy
+        if datos_carga is not None:
+            self.player_sprite.center_x = datos_carga["jugador"]["pos_x"]
+            self.player_sprite.center_y = datos_carga["jugador"]["pos_y"]
+            self.player_sprite.health = datos_carga["jugador"]["vida"]
+        else :
+            sx, sy = self.__spawn_pos(enter_from)        
+            self.player_sprite.center_x = sx
+            self.player_sprite.center_y = sy
 
         self.scene.add_sprite("Player", self.player_sprite)
+
+        self.enemy_list = arcade.SpriteList()
+
+        if datos_carga is not None:
+            from Entidades.Enemigos import EsqueletoEnemigo, DuendeEnemigo, CocodriloEnemigo
+            for datos_enemigos in datos_carga["enemigos_vivos"]:
+                clase = datos_enemigos["clase_enemigo"]
+                if clase == "EsqueletoEnemigo":
+                    nuevo_enemigo = EsqueletoEnemigo()
+                elif clase == "DuendeEnemigo":
+                    nuevo_enemigo = DuendeEnemigo()
+                elif clase == "CocodriloEnemigo":
+                    nuevo_enemigo = CocodriloEnemigo()
+                else:
+                    continue
+
+                #Le damos los dátos que tenían
+                nuevo_enemigo.center_x = datos_enemigos["pos_x"]
+                nuevo_enemigo.center_y = datos_enemigos["pos_y"]
+                nuevo_enemigo.health = datos_enemigos["vida_actual"]
+                nuevo_enemigo.cooldown = datos_enemigos["cooldown_actual"]
+                
+                self.enemy_list.append(nuevo_enemigo)
+        else:
+            if not room.nivel_pasado:
+                for enemigo in room.spawn():
+                    self.enemy_list.append(enemigo)
+            
+        self.scene.add_sprite_list("Enemigos", sprite_list = self.enemy_list)
 
         # Motor del jugador 
         self.physics_engine = arcade.PhysicsEngineSimple(
             self.player_sprite, [self.wall_list, self.scene["puertas_cerradas"]]
         )
-
-        # Enemigos, se crean en cada sala                         
-        self.enemy_list = arcade.SpriteList()                              
-        if not room.nivel_pasado:
-            for enemigo in room.spawn():
-                self.enemy_list.append(enemigo)
-
-        self.scene.add_sprite_list("Enemigos", sprite_list = self.enemy_list)
 
         # Creamos una lista para los motores de los enemigos
         self.enemy_physics_engines = []
@@ -135,7 +171,7 @@ class GameView(arcade.View):
         self.cam_target_y = WINDOW_HEIGHT / 2
 
         #Si venimos de otra sala habrá transición en la cámara
-        if enter_from is not None:
+        if enter_from is not None and datos_carga is None:
             self.movimiento_camara = True
         else:
             #En el caso de la primera sala
@@ -540,7 +576,7 @@ class GameView(arcade.View):
     """
     def on_update(self, delta_time):
         # Tiempo que lleva jugado:
-        self.tiempo_total_jugado += delta_time
+        self.tiempo_jugado += delta_time
 
         jugador = self.player_sprite
         #primeo de todo comprobamos que el personaje tiene vida:
@@ -652,8 +688,9 @@ class GameView(arcade.View):
             lista_enemigos.append(datos_enemigo)
         datos = {
             "nombre_partida": self.nombre_partida,
-            "tiempo_jugado_segundos": self.tiempo_total_jugado,
-            "sala_actual": self.current_room_id,  # La ruta del .tmx actual (ej: "assets/maps/room1.tmx")
+            "tiempo_jugado_segundos": self.tiempo_jugado,
+            "dificultad" : self.dificultad,
+            "sala_actual": self.current_room_id,  
             "jugador": {
                 "vida": self.player_sprite.health,
                 "pos_x": self.player_sprite.center_x,
@@ -725,10 +762,7 @@ class GameView(arcade.View):
             self.player_sprite.objeto_siguiente()
         elif key == arcade.key.LEFT:
             self.player_sprite.objeto_anterior()
-
-        #Calculamos la nueva posición
-        self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
-    
+                
     def on_key_release(self, key, modifiers):
         if key in [arcade.key.LEFT, arcade.key.A]:
             self.left_pressed = False
@@ -739,8 +773,6 @@ class GameView(arcade.View):
         elif key in [arcade.key.DOWN, arcade.key.S]:
             self.down_pressed = False
 
-        #Hacemos el cálculo para que la pausa esté bien
-        self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
     
     #Mecánica del scroll de ratón
     def on_mouse_scroll(self,x,y, scroll_x,scroll_y):

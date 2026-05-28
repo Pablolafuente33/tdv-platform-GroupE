@@ -32,12 +32,12 @@ class ChargeGameview(arcade.View):
         v_box = arcade.gui.UIBoxLayout(space_between=15)
         
         # Título de la pantalla
-        titulo = arcade.gui.UITextArea(
+        titulo = arcade.gui.UILabel(
             text="SELECCIONAR PARTIDA",
             width=400,
             height=40,
             text_color=arcade.color.ORANGE_PEEL,
-            font_size=28,
+            font_size=25,
             font_name="Georgia"
         )
         v_box.add(titulo)
@@ -74,13 +74,12 @@ class ChargeGameview(arcade.View):
                 
         if not partidas_encontradas:
             # Mensaje en caso de que no haya ninguna partida grabada
-            aviso_vacio = arcade.gui.UITextArea(
+            aviso_vacio = arcade.gui.UILabek(
                 text="No se encontraron partidas guardadas.",
                 width=400,
                 height=35,
-                text_color=arcade.color.WHITE,
+                text_color=arcade.color.RED,
                 font_size=16,
-                font_name="Georgia"
             )
             lista_partidas_box.add(aviso_vacio)
             
@@ -92,7 +91,6 @@ class ChargeGameview(arcade.View):
                    anchor_y="center", 
                    align_y=-50)
         
-
         btn_volver = arcade.gui.UITextureButton(
             texture=self.tex_volver,
             text="",
@@ -124,52 +122,8 @@ class ChargeGameview(arcade.View):
             from views.game_view import GameView
             juego_view = GameView()
             
-            # 2. Inyectamos los datos básicos del menú
-            juego_view.nombre_partida = datos["nombre_partida"]
-            juego_view.dificultad_partida = datos["dificultad"]
-            juego_view.tiempo_total_jugado = datos["tiempo_jugado_segundos"]
-            juego_view.current_room_id = datos["sala_actual"]
+            juego_view.setup(datos_carga = datos)
             
-            # 3. Lanzamos el setup inicial (que carga el mapa Tiled básico)
-            juego_view.setup()
-            
-            # 4. SOBREESCRIBIMOS EL MUNDO CON LOS DATOS DEL JSON
-            # Posicionamos al jugador donde se quedó
-            juego_view.player_sprite.center_x = datos["jugador"]["pos_x"]
-            juego_view.player_sprite.center_y = datos["jugador"]["pos_y"]
-            juego_view.player_sprite.health = datos["jugador"]["vida"]
-            
-            # Recontrucción de la Enemy_list
-            from Entidades.Enemigos import EsqueletoEnemigo, DuendeEnemigo, CocodriloEnemigo
-            
-            juego_view.enemy_list.clear() # Limpiamos los que Tiled resucita por defecto
-            
-            for datos_ene in datos["enemigos_vivos"]:
-                clase_str = datos_ene["clase_enemigo"]
-                
-                # Factoría dinámica para saber qué clase instanciar
-                if clase_str == "EsqueletoEnemigo":
-                    nuevo_enemigo = EsqueletoEnemigo()
-                elif clase_str == "DuendeEnemigo":
-                    nuevo_enemigo = DuendeEnemigo()
-                elif clase_str == "CocodriloEnemigo":
-                    nuevo_enemigo = CocodriloEnemigo()
-                else:
-                    continue # Por seguridad si hay un tipo desconocido
-                
-                # Aplicamos sus constantes de posición y vida del archivo
-                nuevo_enemigo.center_x = datos_ene["pos_x"]
-                nuevo_enemigo.center_y = datos_ene["pos_y"]
-                nuevo_enemigo.health = datos_ene["vida_actual"]
-                nuevo_enemigo.cooldown = datos_ene["cooldown_actual"]
-                
-                # Lo añadimos a la lista viva del juego
-                juego_view.enemy_list.append(nuevo_enemigo)
-                
-            # 6. Sincronizamos las banderas de progreso
-            juego_view.jefe1_muerto = datos["jefes_derrotados"]["jefe_1"]
-            
-            # 7. Cambiamos la vista para empezar a jugar inmediatamente
             self.window.show_view(juego_view)
             
         except Exception as e:

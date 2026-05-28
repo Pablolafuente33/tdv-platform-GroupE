@@ -1,0 +1,27 @@
+{
+    "nombre_partida": "Pablo",
+    "tiempo_jugado_segundos": 3.815488300009747,
+    "dificultad": "Normal",
+    "sala_actual": 2,
+    "jugador": {
+        "vida": 50,
+        "pos_x": 218.09244942988883,
+        "pos_y": 530.05
+    },
+    "enemigos_vivos": [
+        {
+            "clase_enemigo": "EsqueletoEnemigo",
+            "pos_x": 226.76759181460366,
+            "pos_y": 281.65,
+            "vida_actual": 100,
+            "cooldown_actual": 0
+        },
+        {
+            "clase_enemigo": "EsqueletoEnemigo",
+            "pos_x": 790,
+            "pos_y": 302,
+            "vida_actual": 100,
+            "cooldown_actual": 0
+        }
+    ]
+}

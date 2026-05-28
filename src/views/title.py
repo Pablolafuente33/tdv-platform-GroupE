@@ -98,46 +98,12 @@ class TitleView(arcade.View):
 
         @cargar_button.event("on_click")
         def on_click_cargar(event):
-            os.makedirs('saves', exist_ok = True)
+            self.manager.disable()
 
-            archivos_guardados = [ archivo
-                                  for archivo in os.listdir('saves')
-                                  if archivo.endswith('.json')]
+            from views.charge_game import ChargeGameview
+
+            self.window.show_view(ChargeGameview())
             
-            #Si no hay partidas
-            if not archivos_guardados:
-                print("No hay partidas guardadas.")
-                return
-
-            nombre_archivo = archivos_guardados[0]
-            ruta_guardado = os.path.join('saves',nombre_archivo)
-
-            with open(ruta_guardado, 'r', encoding = 'utf-8') as f:
-                 datos_cargados = json.load(f)
-
-            # Creamos la vista del juego
-            from views.game_view import GameView
-            juego_view = GameView()
-            
-            # --- AQUÍ OCURRE LA MAGIA: Reinyectamos los datos guardados ---
-            juego_view.nombre_partida = datos_cargados["nombre_partida"]
-            juego_view.tiempo_total_jugado = datos_cargados["tiempo_jugado_segundos"]
-            
-            # 1. Cargamos la escena/mapa en la que se quedó
-            # Tu método para cargar mapas debería aceptar la ruta como parámetro
-            juego_view.cargar_mapa(datos_cargados["sala_actual"]) 
-            
-            # 2. Colocamos al jugador en sus coordenadas y le devolvemos su vida
-            juego_view.player_sprite.center_x = datos_cargados["jugador"]["pos_x"]
-            juego_view.player_sprite.center_y = datos_cargados["jugador"]["pos_y"]
-            juego_view.player_sprite.vida = datos_cargados["jugador"]["vida"]
-            
-            # 3. Restauramos los jefes derrotados
-            juego_view.jefe1_muerto = datos_cargados["jefes_derrotados"]["jefe_1"]
-
-            # Mostramos la vista del juego ya configurada con el pasado del jugador
-            self.window.show_view(juego_view)
-
         @nueva_partida_button.event("on_click")
         def on_click_nueva_partida(event):
 
