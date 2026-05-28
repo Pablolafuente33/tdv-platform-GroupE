@@ -21,12 +21,23 @@ class Player(arcade.TextureAnimationSprite):
         #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
         self.gestor_animaciones = Gestor_animaciones(
             sprite=self,
-            spritesheet_path = os.path.join('assets','graphics','Player.png'),
+            spritesheet_idle_path = os.path.join('assets','graphics','Player.png'),
             tamanno_sprite= (32, 32),
             columns= 9,
             count=8,
-            duracion= 100
+            duracion= 100,
+
+            spritesheet_atk_path = os.path.join('assets', 'graphics', 'AtaquePlayer.png'),
+            columns_atk= 9,
+            count_atk= 9,
+            duracion_atk= 80,
+            tamano_sprite_atk= (32, 32)
+
         )
+
+        self.esta_atacando = False
+        self.ataque_timer = 0
+        self.duracion_ataque = 0.5
 
         self.health = 100
         self.max_health = 100
@@ -65,6 +76,17 @@ class Player(arcade.TextureAnimationSprite):
         for i in self.inventario:
             if i == None:
                 i = item
+
+
+    def atacar(self):
+        """
+        Se usará para hacer la animación del ataque y a lo mejor el ataque con espada.
+        """
+        self.esta_atacando = True
+        self.ataque_timer = self.duracion_ataque
+
+
+
     """
     ======================================================================================================
     ================================ ACTUALIZACIONES =====================================================
@@ -73,7 +95,14 @@ class Player(arcade.TextureAnimationSprite):
     
     #Esto simplemente actualiza la animación que se este ejecutando
     def update_animation_state(self, delta_time):
-        self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
+        #Esto simplemente actualiza la animación que se este ejecutando
+        if self.esta_atacando:
+            self.ataque_timer -= delta_time
+            self.gestor_animaciones.update_ataque(delta_time)
+            if self.ataque_timer <= 0:
+                self.esta_atacando = False
+        else:
+            self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
 
     def actualizar_movimiento(self, up, down, left, right):
         #Determinamos la dirección del jugador.

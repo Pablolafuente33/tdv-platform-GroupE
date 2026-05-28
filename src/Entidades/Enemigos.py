@@ -117,7 +117,7 @@ class EsqueletoEnemigo(Enemigo):
         #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
         self.gestor_animaciones = Gestor_animaciones(
             sprite=self,
-            spritesheet_path = os.path.join('assets','graphics','Enemigo_1Spritesheet.png'),
+            spritesheet_idle_path = os.path.join('assets','graphics','Enemigo_1Spritesheet.png'),
             tamanno_sprite= (64, 64),
             columns= 6,
             count=6,
@@ -145,7 +145,7 @@ class DuendeEnemigo(Enemigo):
         #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
         self.gestor_animaciones = Gestor_animaciones(
             sprite=self,
-            spritesheet_path = os.path.join('assets','graphics','Enemigo_2.png'),
+            spritesheet_idle_path = os.path.join('assets','graphics','Enemigo_2.png'),
             tamanno_sprite= (64, 64),
             columns= 6,
             count=6,
@@ -175,7 +175,7 @@ class CocodriloEnemigo(Enemigo):
         #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
         self.gestor_animaciones = Gestor_animaciones(
             sprite=self,
-            spritesheet_path = os.path.join('assets','graphics','Boss_1.png'),
+            spritesheet_idle_path = os.path.join('assets','graphics','Boss_1.png'),
             tamanno_sprite= (64, 64),
             columns= 6,
             count=6,

@@ -6,7 +6,7 @@ import json
 
 from Entidades.Player import Player
 from Habitaciones import HABITACIONES, OPUESTO
-
+from EspadaAtaque import EspadaAtaque
 from constantes import *
 
 from views.game_over import GameOverView
@@ -74,6 +74,8 @@ class GameView(arcade.View):
         #Cargamos el tilemap y obtenemos la escena
         self.scene = room.construir_habitacion()
         self.wall_list = room.get_wall_list()
+
+        self.scene.add_sprite_list("espada")
 
         #Creamos las puertas para la detección de estas
         self.puertas_bloqueadas = arcade.SpriteList()
@@ -616,6 +618,10 @@ class GameView(arcade.View):
         
         # Actualizamos la animación del personaje
         self.player_sprite.update_animation_state(delta_time)
+
+        for espada in self.scene["espada"]:
+            espada.update(delta_time)
+
     
     def guardar_partida(self,):
         """Recopila todo el estado actual del juego y lo guarda en la carpeta de saves"""
@@ -677,13 +683,13 @@ class GameView(arcade.View):
             return
         
         #Teclas para mover el personaje
-        if key in [arcade.key.LEFT, arcade.key.A]:
+        if key in [arcade.key.A]:
             self.left_pressed = True
-        elif key in [arcade.key.RIGHT, arcade.key.D]:
+        elif key in [arcade.key.D]:
             self.right_pressed = True
-        elif key in [arcade.key.UP, arcade.key.W]:
+        elif key in [arcade.key.W]:
             self.up_pressed  = True
-        elif key in [arcade.key.DOWN, arcade.key.S]:
+        elif key in [arcade.key.S]:
             self.down_pressed = True
         
         # Botón para usar el arma
@@ -713,17 +719,27 @@ class GameView(arcade.View):
         elif key == arcade.key.LEFT:
             self.player_sprite.objeto_anterior()
 
+        if key == arcade.key.E:
+            self.player_sprite.atacar()
+            espada = EspadaAtaque(
+                x=self.player_sprite.center_x,
+                y=self.player_sprite.center_y,
+                direccion=self.player_sprite.facing_direction,
+                enemy_list=self.enemy_list
+            )
+            self.scene.add_sprite("espada", espada)
+
         #Calculamos la nueva posición
         self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
     
     def on_key_release(self, key, modifiers):
-        if key in [arcade.key.LEFT, arcade.key.A]:
+        if key in [arcade.key.A]:
             self.left_pressed = False
-        elif key in [arcade.key.RIGHT, arcade.key.D]:
+        elif key in [arcade.key.D]:
             self.right_pressed = False
-        elif key in [arcade.key.UP, arcade.key.W]:
+        elif key in [arcade.key.W]:
             self.up_pressed  = False
-        elif key in [arcade.key.DOWN, arcade.key.S]:
+        elif key in [arcade.key.S]:
             self.down_pressed = False
 
         #Hacemos el cálculo para que la pausa esté bien
