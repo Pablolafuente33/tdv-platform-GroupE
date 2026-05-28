@@ -24,6 +24,7 @@ class Player(arcade.TextureAnimationSprite):
             spritesheet_path = os.path.join('assets','graphics','Player.png'),
             tamanno_sprite= (32, 32),
             columns= 9,
+            count=8,
             duracion= 100
         )
 

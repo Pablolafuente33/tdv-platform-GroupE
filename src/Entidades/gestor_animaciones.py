@@ -9,17 +9,17 @@ import arcade
 class Gestor_animaciones:
     #Para usar la clase se deben dar los valores del sprite a usar (self), el path al archivo, el tamaño de los frames, la cantidad de
     #   columnas de frames componen la spritesheet, y finalmente la duración de la animación (cuanto menor, más rápido)
-    def __init__(self, sprite, spritesheet_path, tamanno_sprite, columns, duracion) -> None:
+    def __init__(self, sprite, spritesheet_path, tamanno_sprite,count, columns, duracion) -> None:
         self.sprite = sprite
         sheet = arcade.load_spritesheet(spritesheet_path)
 
         # Se hace una tabla/diccionario con todas las animaciones del sprite. Se deben dar los valores de la cantidad de frames (count)
         #   y la fila en la que se encuentran los frames.
         self.animaciones = {
-            "up": self.crear_anim(sheet, row=4, columns= columns, count= 8, duracion= duracion, tamanno= tamanno_sprite),
-            "right": self.crear_anim(sheet, row=5, columns= columns, count= 8, duracion= duracion, tamanno= tamanno_sprite),
-            "down": self.crear_anim(sheet, row=6, columns= columns, count= 8, duracion= duracion, tamanno= tamanno_sprite),
-            "left": self.crear_anim(sheet, row=7, columns= columns, count= 8, duracion= duracion, tamanno= tamanno_sprite),
+            "up": self.crear_anim(sheet, row=4, columns= columns, count= count, duracion= duracion, tamanno= tamanno_sprite),
+            "right": self.crear_anim(sheet, row=5, columns= columns, count= count, duracion= duracion, tamanno= tamanno_sprite),
+            "down": self.crear_anim(sheet, row=6, columns= columns, count= count, duracion= duracion, tamanno= tamanno_sprite),
+            "left": self.crear_anim(sheet, row=7, columns= columns, count= count, duracion= duracion, tamanno= tamanno_sprite),
             "idle_down": self.crear_anim(sheet, row=3, columns= columns, count= 1, duracion= duracion, tamanno= tamanno_sprite),
             "idle_left": self.crear_anim(sheet, row=2, columns= columns, count= 1, duracion= duracion, tamanno= tamanno_sprite),
             "idle_right": self.crear_anim(sheet, row=1, columns= columns, count= 1, duracion= duracion, tamanno= tamanno_sprite),

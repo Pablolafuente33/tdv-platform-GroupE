@@ -140,7 +140,7 @@ class ChargeGameview(arcade.View):
             juego_view.player_sprite.health = datos["jugador"]["vida"]
             
             # Recontrucción de la Enemy_list
-            from personajes import EsqueletoEnemigo, DuendeEnemigo, CocodriloEnemigo
+            from Entidades.Enemigos import EsqueletoEnemigo, DuendeEnemigo, CocodriloEnemigo
             
             juego_view.enemy_list.clear() # Limpiamos los que Tiled resucita por defecto
             

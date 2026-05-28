@@ -8,7 +8,7 @@ import math
 from pathlib import Path
 
 import arcade
-from personajes import Protagonista
+from Entidades.Enemigos import Protagonista
 from Habitaciones import HABITACIONES, OPUESTO
 
 """

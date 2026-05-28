@@ -8,7 +8,7 @@ En cada .tmx hay:
 
 import arcade
 import os
-from personajes import EsqueletoEnemigo, DuendeEnemigo, CocodriloEnemigo
+from Entidades.Enemigos import EsqueletoEnemigo, DuendeEnemigo, CocodriloEnemigo
 from constantes import WINDOW_HEIGHT, WINDOW_WIDTH
 
 # ConstaNTES DE VENTANA
