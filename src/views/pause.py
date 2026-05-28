@@ -17,6 +17,7 @@ class PauseView(arcade.View):
         self.tex_reiniciar = arcade.load_texture(os.path.join(botones, 'boton_reiniciar.png')) 
         self.tex_volumen = arcade.load_texture(os.path.join(botones, 'boton_volumen.png'))
         self.guardar_partida = arcade.load_texture(os.path.join(botones, 'boton_guardar_partida.png'))
+        self.back_button= arcade.load_texture(os.path.join(botones, 'boton_volver.png'))
 
     def on_show_view(self):
         self.window.ctx.viewport = (0, 0, self.window.width, self.window.height)
@@ -31,11 +32,11 @@ class PauseView(arcade.View):
         self.manager.clear()
         
         anchor = arcade.gui.UIAnchorLayout()
-        v_box = arcade.gui.UIBoxLayout(space_between=3)
+        v_box = arcade.gui.UIBoxLayout(space_between=0)
 
         # --- FILA DE VOLUMEN (Horizontal) ---
         h_box_volume = arcade.gui.UIBoxLayout(vertical=False, space_between=10)
-        vol_label = arcade.gui.UITextureButton(texture=self.tex_volumen, width=200, height=100)
+        vol_label = arcade.gui.UITextureButton(texture=self.tex_volumen, width=200, height=90)
         
         # Sacamos el volumen actual que tenga el reproductor de la ventana
         volumen_global = 20
@@ -46,19 +47,26 @@ class PauseView(arcade.View):
         h_box_volume.add(vol_label)
         h_box_volume.add(self.volume_slider)
 
-        # --- BOTONES PRINCIPALES ---
+        # BOTONES
         resume_btn = arcade.gui.UITextureButton(
             texture=self.tex_reanudar, 
             width=250, 
             height=125)
+        btn_back = arcade.gui.UITextureButton(
+            texture=self.back_button,
+            texture_hovered=self.back_button,
+            text="",
+            width=100, 
+            height=60
+        )
         retry_btn = arcade.gui.UITextureButton(
             texture=self.tex_reiniciar, 
             width=350, 
-            height=150)
+            height=100)
         guardar_btn = arcade.gui.UITextureButton(
             texture = self.guardar_partida,
-            width=250, 
-            height=125
+            width=300, 
+            height=100
         )
 
         # Los añadimos al contenedor vertical
@@ -76,6 +84,7 @@ class PauseView(arcade.View):
                 self.window.bgm_player.volume = vol
 
         @resume_btn.event("on_click")
+        @btn_back.event("on_click")
         def on_click_resume(event):
             self.manager.disable()
             #Volvemos a donde estábamos
@@ -90,14 +99,28 @@ class PauseView(arcade.View):
             from views.title import TitleView
             nuevo_juego = TitleView()
             self.window.show_view(nuevo_juego)
+        
+        @guardar_btn.event("on_click")
+        def on_click_guardar(event):
+            self.manager.disable()
+            self.game_view.guardar_partida()
 
         # Centramos todo el panel en pantalla
         anchor.add(
             child=v_box, 
             anchor_x="center", 
             anchor_y="center",
-            align_y=-60
+            align_y=-100
         )
+        # lo ponemos en la esquina superior izquierda
+        anchor.add(
+            child=btn_back,
+            anchor_x="left",
+            anchor_y="top",
+            align_x=20,   
+            align_y=-40   
+        )
+
         self.manager.add(anchor)
 
     def on_draw(self):

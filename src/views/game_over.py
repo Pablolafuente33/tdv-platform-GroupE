@@ -8,10 +8,11 @@ class GameOverView(arcade.View):
         self.manager = arcade.gui.UIManager()
 
         graficos = os.path.join('assets', 'graphics') #Cambiar a otro o lo que querais.
+        botones = os.path.join('assets', 'botones') #Cambiar a otro o lo que querais.
         self.background = arcade.load_texture(os.path.join(graficos, 'fondo_menu.png'))
         #Lo cambiamos a un nuevo boton
-        self.tex_reiniciar = arcade.load_texture(os.path.join(graficos, 'boton_ajustes.png'))
-        self.tex_salir = arcade.load_texture(os.path.join(graficos, 'boton_pantalla_completa.png'))
+        self.tex_reiniciar = arcade.load_texture(os.path.join(botones, 'boton_ajustes.png'))
+        self.tex_salir = arcade.load_texture(os.path.join(botones, 'boton_pantalla_completa.png'))
     
     def on_show_view(self):
         self.manager.enable()
@@ -55,7 +56,7 @@ class GameOverView(arcade.View):
 
         @exit_button.event("on_click")
         def on_click_exit(event):
-            # Cierra la ventana y finaliza el proceso del programa
+            # Finalizamos el juego
             self.window.close()
 
         anchor.add(

@@ -50,7 +50,7 @@ class TitleView(arcade.View):
         
         anchor = arcade.gui.UIAnchorLayout()
         
-        self.v_box = arcade.gui.UIBoxLayout(space_between=3)
+        self.v_box = arcade.gui.UIBoxLayout(space_between=0)
 
         # Creación del botón de CARGAR_PARTIDA
         cargar_button = arcade.gui.UITextureButton(
@@ -59,7 +59,7 @@ class TitleView(arcade.View):
             texture_pressed=self.cargar_button,
             text="", 
             width=350,
-            height=175
+            height=150
         )
         
         #Creación del botón de NUEVA_PARTIDA
@@ -69,7 +69,7 @@ class TitleView(arcade.View):
             texture_pressed=self.nueva_partida_button,
             text="", 
             width=350,
-            height=175
+            height=150
         )
 
         # Creación del botón de AJUSTES
@@ -78,17 +78,15 @@ class TitleView(arcade.View):
             texture_hovered=self.tex_ajustes,
             texture_pressed=self.tex_ajustes,
             text="",
-            width=350,
-            height=175
+            width=300,
+            height=150
         )
 
         self.v_box.add(cargar_button)
         self.v_box.add(nueva_partida_button)
         self.v_box.add(settings_button)
-        
 
         # Eventos al hacer click en los botones
-
         
         @settings_button.event("on_click")
         def on_click_settings(event):
@@ -152,7 +150,7 @@ class TitleView(arcade.View):
             child=self.v_box, 
             anchor_x="center", 
             anchor_y="center", 
-            align_y=-80
+            align_y=-100
         )
         
         self.manager.add(anchor)

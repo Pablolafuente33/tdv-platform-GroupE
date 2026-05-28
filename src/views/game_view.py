@@ -29,7 +29,7 @@ class GameView(arcade.View):
 
         #Iniciamos las variables de nuestros sprites.
         self.player_sprite = None
-        self.enemy_list = None
+        self.enemy_list = arcade.SpriteList()
         self.wall_list = None
         self.scene = None
 
@@ -584,7 +584,7 @@ class GameView(arcade.View):
                 
                 enemigo.update_animation(delta_time)
 
-                # --- NUEVO: SISTEMA ANTIESCAPES ---
+                # Para arreglar bug de que se escapen los enemigos
                 margen = 200
                 if (enemigo.center_x < -margen or enemigo.center_x > WINDOW_WIDTH + margen or 
                     enemigo.center_y < -margen or enemigo.center_y > WINDOW_HEIGHT + margen):
@@ -617,31 +617,45 @@ class GameView(arcade.View):
         # Actualizamos la animación del personaje
         self.player_sprite.update_animation_state(delta_time)
     
-    def guardar_progreso(self,):
+    def guardar_partida(self,):
         """Recopila todo el estado actual del juego y lo guarda en la carpeta de saves"""
-        
+        #Creamos la carpeta si no está:
+        os.makedirs("saves", exist_ok = True)
+
+        #Creamos el archivo y su ruta:
+        nombre_archivo = f'{self.nombre_partida}.json'
+        ruta_guardado = os.path.join("saves", nombre_archivo)
+
+        #Cogemos los datos de la enemy_list (Que es donde van a estar los enemigos vivos)
+        lista_enemigos = []
+        for enemigo in self.enemy_list:
+            datos_enemigo = {
+                "clase_enemigo": type(enemigo).__name__,
+                "pos_x":enemigo.center_x,
+                "pos_y":enemigo.center_y,
+                "vida_actual":enemigo.health,
+                "cooldown_actual": enemigo.cooldown
+            }
+            lista_enemigos.append(datos_enemigo)
         datos = {
             "nombre_partida": self.nombre_partida,
             "tiempo_jugado_segundos": self.tiempo_total_jugado,
-            "sala_actual": self.current_room_path,  # La ruta del .tmx actual (ej: "assets/maps/room1.tmx")
+            "sala_actual": self.current_room_id,  # La ruta del .tmx actual (ej: "assets/maps/room1.tmx")
             "jugador": {
-                "vida": self.player_sprite.vida,
+                "vida": self.player_sprite.health,
                 "pos_x": self.player_sprite.center_x,
                 "pos_y": self.player_sprite.center_y
             },
-            "jefes_derrotados": {
-                # Aquí puedes meter vuestras variables tipo: self.jefe1_muerto (True/False)
-                "jefe_1": getattr(self, "jefe1_muerto", False), 
-            }
+            "enemigos_vivos" : lista_enemigos
         }
         
-        ruta = os.path.join( "saves", f"{self.nombre_partida}.json")
-        os.makedirs(os.path.dirname(ruta), exist_ok=True)
-        
-        with open(ruta, "w", encoding="utf-8") as f:
-            json.dump(datos, f, indent=4, ensure_ascii=False)
+        try:
+            with open(ruta_guardado, "w", encoding="utf-8") as f:
+                json.dump(datos, f, indent=4, ensure_ascii=False)
             
-        print(f"¡Partida guardada con éxito en {ruta}!")
+            print(f"¡Partida guardada con éxito en {ruta_guardado}!")
+        except Exception as e:
+            print(f"Error al escribir el archivo de guardado: {e}")
     """
     ============================================================================================================
     =====================================  INPUT DEL USUARIO  ==================================================

@@ -1,0 +1,11 @@
+{
+    "nombre_partida": "Partida1",
+    "tiempo_jugado_segundos": 12.962781399997766,
+    "sala_actual": 0,
+    "jugador": {
+        "vida": 100,
+        "pos_x": 1159.4937913096937,
+        "pos_y": 355.12
+    },
+    "enemigos_vivos": []
+}

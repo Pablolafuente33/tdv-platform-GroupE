@@ -60,8 +60,8 @@ class SettingsView(arcade.View):
 
         back_btn = arcade.gui.UITextureButton(
             texture=self.tex_volver,
-            width=300,
-            height=200
+            width=100,
+            height=60
         )
 
         # --- EVENTOS ---
@@ -84,13 +84,21 @@ class SettingsView(arcade.View):
         # --- AGREGAR AL CONTENEDOR PRINCIPAL ---
         v_box.add(h_box_volume)
         v_box.add(fullscreen_btn)
-        v_box.add(back_btn)
 
         anchor.add(
             child=v_box, 
             anchor_x="center", 
             anchor_y="center",
             align_y=-100 
+        )
+
+        #Metemos el boton de volver arriba a la izquierda
+        anchor.add(
+            child=back_btn,
+            anchor_x="left",
+            anchor_y="top",
+            align_x=20,   
+            align_y=-20   
         )
         
         self.manager.add(anchor)

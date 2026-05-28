@@ -10,11 +10,12 @@ class NewGameView(arcade.View):
         # Cargamos el mismo fondo que uséis en los menús
         graficos = os.path.join('assets', 'graphics')
         botones = os.path.join('assets', 'botones') 
-        self.background = arcade.load_texture(os.path.join(graficos, 'fondo_ajustes.png'))
+        self.background = arcade.load_texture(os.path.join(graficos, 'nueva_partida.png'))
         self.tex_jugar = arcade.load_texture(os.path.join(botones,'boton_jugar.png'))
         self.dificil_button = arcade.load_texture(os.path.join(botones,'boton_dificil.png'))
         self.normal_button = arcade.load_texture(os.path.join(botones,'boton_normal.png'))
         self.facil_button = arcade.load_texture(os.path.join(botones,'boton_facil.png'))
+        self.back_button = arcade.load_texture(os.path.join(botones, 'boton_volver.png'))
         self.dificultad = 'Normal'
         # Guardaremos el cuadro de texto en una variable de clase para leerlo luego
         self.input_nombre = None
@@ -30,65 +31,57 @@ class NewGameView(arcade.View):
         self.manager.clear()
         
         anchor = arcade.gui.UIAnchorLayout()
-        v_box = arcade.gui.UIBoxLayout(space_between=3)
+        v_box = arcade.gui.UIBoxLayout(space_between=0)
 
         # 1. Añadimos una etiqueta de texto que guíe al jugador
-        label = arcade.gui.UITextWidget(
-            text="Introduce el nombre de la partida:",
-            width=300,
-            height=40,
-            text_color=arcade.color.WHITE,
-            font_size = 20
+        label = arcade.gui.UILabel(
+            text="Introduzca el nombre de la partida:",
+            width=550,
+            height=35,
+            text_color=arcade.color.ORANGE_PEEL,
+            font_size = 25, 
         )
         v_box.add(label)
 
         #Creamos un cuadro par que se escriba el nombre de la partida.
         self.input_nombre = arcade.gui.UIInputText(
-            text="Partida1",  # Nombre por defecto
+            text="Partida1",  
             width=300,
-            height=40,
-            text_color=arcade.color.ORANGE_PEEL
+            height= 40,
+            text_color=arcade.color.ORANGE_PEEL,
+            font_size = 22,
         )
         
         v_box.add(self.input_nombre)
+
+        v_box.add(arcade.gui.UISpace(height=20))
+
         #Para determinar la dificultad de la partida:
-        dificultad_label = arcade.gui.UITextWidget(
+        dificultad_label = arcade.gui.UILabel(
             text="Seleccionar dificultad",
-            width = 300,
-            height = 40,
-            text_color = arcade.color.WHITE,
-            font_size = 20
+            width = 400,
+            height = 28,
+            text_color = arcade.color.ORANGE_PEEL,
+            font_size = 25,
         )
         v_box.add(dificultad_label)
 
         #Creamos el compartimiento donde van a estar las etiquetas de las dificultades
         dificultad_box = arcade.gui.UIBoxLayout(
             vertical=False,
-            space_between=10
+            space_between=5
         )
 
         btn_facil = arcade.gui.UITextureButton(
             texture = self.facil_button,
-            texture_hovered=self.facil_button,
-            text="",
-            width = 250,
-            height=175
         )
 
         btn_normal = arcade.gui.UITextureButton(
             texture = self.normal_button,
-            texture_hovered= self.normal_button,
-            text="",
-            width = 250,
-            height=175
         )
 
         btn_dificil = arcade.gui.UITextureButton(
             texture = self.dificil_button,
-            texture_hovered = self.dificil_button,
-            text="",
-            width = 250,
-            height=175
         )
 
         dificultad_box.add(btn_facil)
@@ -96,26 +89,49 @@ class NewGameView(arcade.View):
         dificultad_box.add(btn_dificil)
 
         v_box.add(dificultad_box)
+        # --- SISTEMA DE VISUALIZACIÓN CLARA DE DIFICULTAD ---
+        def actualizar_botones_dificultad():
+            for btn in [btn_facil, btn_normal, btn_dificil]:
+                btn.width = 220
+                btn.height = 130
 
+            # El botón que ha sido activado lo hacemos más grande
+            if self.dificultad == "Fácil":
+                btn_facil.width = 270
+                btn_facil.height = 190
+            elif self.dificultad == "Normal":
+                btn_normal.width = 270
+                btn_normal.height = 190
+            elif self.dificultad == "Difícil":
+                btn_dificil.width = 270
+                btn_dificil.height = 190
+            
+            self.manager.trigger_render()
+        
+        actualizar_botones_dificultad()
+                
         @btn_facil.event("on_click")
         def on_click_facil(event):
             self.dificultad = "Fácil"
-
             print("Dificultad seleccionada: Fácil")
+            print(self.dificultad)
+            actualizar_botones_dificultad()
 
         @btn_normal.event("on_click")
         def on_click_normal(event):
             self.dificultad = "Normal"
-
             print("Dificultad seleccionada: Normal")
+            print(self.dificultad)
+            actualizar_botones_dificultad()
 
         @btn_dificil.event("on_click")
         def on_click_dificil(event):
             self.dificultad = "Difícil"
-
             print("Dificultad seleccionada: Difícil")
-
-        # 3. Botón para confirmar y empezar
+            print(self.dificultad)
+            actualizar_botones_dificultad()
+    
+        # Botón para empezar a jugar
         tex_jugar = arcade.gui.UITextureButton(
             texture = self.tex_jugar,
             texture_hovered=self.tex_jugar,
@@ -132,19 +148,74 @@ class NewGameView(arcade.View):
             nombre_partida = self.input_nombre.text.strip()
             
             if not nombre_partida:
-                nombre_partida = "Parida1"
+                nombre_partida = "Partida1"
 
-            # Avanzamos al GameView pasando el nombre
+            #Contruimos el archivo donde se va a guardar la parrtida
+            nombre_archivo = f'{nombre_partida}.json'
+            ruta = os.path.join("saves", nombre_archivo)
+            #Debemos de mirar que no hay otra partida con el mismo nombre
+            if os.path.exists(ruta):
+                #Lanzamos un mensaje de aviso
+                label.text = "¡ESE NOMBRE DE PARTIDA YA EXISTE! Elige otro:"
+                label.text_color = arcade.color.RED
+                return
+            
+            if os.path.exists("saves"):
+                partidas_guardadas = [f
+                    for f in os.listdir("saves")
+                        if f.endswith('.json') ]
+                if len(partidas_guardadas) >= 5 :
+                    rutas = [os.path.join("saves", f) 
+                                for f in partidas_guardadas]
+                    
+                    partida_vieja= min(rutas, key = os.path.getmtime)
+
+                    try:
+                        borrado = os.path.basename(partida_vieja).replace(".json", "")
+                        os.remove(partida_vieja)
+                        print(f'Máximo de partidas guardadas alcanzado.\nSe ha eliminado la partida más vieja:{borrado}')
+                    except Exception as e:
+                        print(f'Error al borrar el archivo más antiguo: {e}')
+            # Lanzamos el juego
             from views.game_view import GameView
             juego_view = GameView()
             
             # Asignamos el nombre a la partida antes de mostrarla
             juego_view.nombre_partida = nombre_partida
             juego_view.tiempo_total_jugado = 0.0
+            juego_view.dificultad_partida = self.dificultad
             juego_view.setup()
+            juego_view.guardar_partida()
             self.window.show_view(juego_view)
 
-        anchor.add(child=v_box, anchor_x="center", anchor_y="center", align_y=-50)
+        anchor.add(child=v_box, 
+                   anchor_x="center", 
+                   anchor_y="center", 
+                   align_y=-130)
+
+        btn_back = arcade.gui.UITextureButton(
+            texture=self.back_button,
+            texture_hovered=self.back_button,
+            text="",
+            width=100, 
+            height=60
+        )
+
+        # Evento para regresar al menú principal 
+        @btn_back.event("on_click")
+        def on_click_back(event):
+            from views.title import TitleView  
+            self.window.show_view(TitleView())
+
+        # lo ponemos en la esquina superior izquierda
+        anchor.add(
+            child=btn_back,
+            anchor_x="left",
+            anchor_y="top",
+            align_x=20,   
+            align_y=-20   
+        )
+
         self.manager.add(anchor)
 
     def on_draw(self):
