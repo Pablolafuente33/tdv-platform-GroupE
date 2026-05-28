@@ -5,7 +5,7 @@ import math
 import json
 
 from Entidades.Player import Player
-from habitaciones import HABITACIONES, OPUESTO
+from Habitaciones import HABITACIONES, OPUESTO
 
 from constantes import *
 
