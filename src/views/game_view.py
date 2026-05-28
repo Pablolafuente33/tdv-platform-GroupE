@@ -197,52 +197,65 @@ class GameView(arcade.View):
         return cx, cy
     
     def __check_doors(self):
-        #Solo si la cámara no está en transición
-        if self.movimiento_camara:
-            return
-        
-        # Bloqueo de puertas si hay enemigos vivos                         
-        if len(self.enemy_list) > 0:                                       
-            return    
+            # Solo si la cámara no está en transición
+            if self.movimiento_camara:
+                return
+            
+            # Bloqueo de puertas si hay enemigos vivos                           
+            if len(self.enemy_list) > 0:                                       
+                return    
+                
             # Obtenemos las dimensiones reales del mapa actual en píxeles
-        tilemap = HABITACIONES[self.current_room_id].tile_map
-        map_width = tilemap.width * tilemap.tile_width * tilemap.scaling
-        map_height = tilemap.height * tilemap.tile_height * tilemap.scaling
-        
-        # Posición del jugador
-        px = self.player_sprite.center_x
-        py = self.player_sprite.center_y
-        
-        # Un margen de activación. Si el jugador está a menos de 90 píxeles de un borde,
-        # asumimos que está intentando cruzar una puerta en ese lado.
-        margen = 90 
-        lado_tocado = None
-        
-        # Comprobamos los 4 extremos del mapa
-        if px < margen:
-            lado_tocado = 'l'  # Izquierda (Left)
-        elif px > map_width - margen:
-            lado_tocado = 'r'  # Derecha (Right)
-        elif py < (margen+10):
-            lado_tocado = 'd'  # Abajo (Down)
-        elif py > map_height - (margen+10):
-            lado_tocado = 'u'  # Arriba (Up)
+            tilemap = HABITACIONES[self.current_room_id].tile_map
+            map_width = tilemap.width * tilemap.tile_width * tilemap.scaling
+            map_height = tilemap.height * tilemap.tile_height * tilemap.scaling
             
-        # Si el jugador ha llegado a un extremo del mapa...
-        if lado_tocado is not None:
-            habitacion_actual = HABITACIONES[self.current_room_id]
+            # Posición del jugador
+            px = self.player_sprite.center_x
+            py = self.player_sprite.center_y
             
-            # Buscamos si la habitación actual tiene una puerta registrada en ese lado
-            for puerta_codigo in habitacion_actual.puertas:
-                if puerta_codigo.side == lado_tocado:
-                    print(f"¡Puerta cruzada por el lado {lado_tocado}! Viajando a la sala {puerta_codigo.leads_to}")
-                    
-                    # Cambiamos de sala
-                    self.setup(
-                        room_id=puerta_codigo.leads_to, 
-                        enter_from=OPUESTO[puerta_codigo.side]
-                    )
-                    return
+            # Puntos medios de la pantalla/mapa
+            mid_x = map_width / 2
+            mid_y = map_height / 2
+            
+            # CONFIGURACIÓN DE MÁRGENES
+            margen = 88          # Distancia al borde del mapa
+            ancho_puerta = 60   # Tolerancia de movimiento respecto al centro del muro
+            
+            lado_tocado = None
+            
+            # Comprobamos los 4 extremos del mapa asegurando que esté en el CENTRO del muro
+            # Izquierda: X cerca de 0 Y en el centro
+            if px < margen and (mid_y - ancho_puerta < py < mid_y + ancho_puerta):
+                lado_tocado = 'l'  
+                
+            # Derecha: X cerca del final Y en el centro
+            elif px > map_width - margen and (mid_y - ancho_puerta < py < mid_y + ancho_puerta):
+                lado_tocado = 'r'  
+                
+            # Abajo: Y cerca de 0 X en el centro
+            elif py < (margen + 10) and (mid_x - 50 - ancho_puerta < px < mid_x - 50 + ancho_puerta):
+                lado_tocado = 'd'  
+                
+            # Arriba: Y cerca del final X en el centro
+            elif py > map_height - (margen + 10) and (mid_x - 50 - ancho_puerta < px < mid_x - 50 + ancho_puerta):
+                lado_tocado = 'u'  
+                
+            # Si el jugador ha cruzado por el hueco exacto...
+            if lado_tocado is not None:
+                habitacion_actual = HABITACIONES[self.current_room_id]
+                
+                # Buscamos si la habitación actual tiene una puerta registrada en ese lado
+                for puerta_codigo in habitacion_actual.puertas:
+                    if puerta_codigo.side == lado_tocado:
+                        print(f"¡Puerta cruzada por el lado {lado_tocado}! Viajando a la sala {puerta_codigo.leads_to}")
+                        
+                        # Cambiamos de sala
+                        self.setup(
+                            room_id=puerta_codigo.leads_to, 
+                            enter_from=OPUESTO[puerta_codigo.side]
+                        )
+                        return
             
     def __update_camera(self, delta_time):
         #Desliz suavemente hacia el objetivo
