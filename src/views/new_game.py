@@ -8,9 +8,9 @@ class NewGameView(arcade.View):
         self.manager = arcade.gui.UIManager()
         
         # Cargamos el mismo fondo que uséis en los menús
-        graficos = os.path.join('assets', 'graphics')
+        fondos = os.path.join('assets', 'fondos')
         botones = os.path.join('assets', 'botones') 
-        self.background = arcade.load_texture(os.path.join(graficos, 'nueva_partida.png'))
+        self.background = arcade.load_texture(os.path.join(fondos, 'nueva_partida.png'))
         self.tex_jugar = arcade.load_texture(os.path.join(botones,'boton_jugar.png'))
         self.dificil_button = arcade.load_texture(os.path.join(botones,'boton_dificil.png'))
         self.normal_button = arcade.load_texture(os.path.join(botones,'boton_normal.png'))

@@ -8,10 +8,10 @@ class ChargeGameview(arcade.View):
         super().__init__()
         self.manager = arcade.gui.UIManager()
 
-        graficos = os.path.join('assets', 'graphics')
+        fondos = os.path.join('assets', 'fondos')
         botones = os.path.join('assets', 'botones')
 
-        self.background = arcade.load_texture(os.path.join(graficos, 'cargar_partidas.png'))
+        self.background = arcade.load_texture(os.path.join(fondos, 'cargar_partidas.png'))
         self.tex_jugar = arcade.load_texture(os.path.join(botones, 'boton_jugar.png'))
         self.tex_volver = arcade.load_texture(os.path.join(botones, 'boton_volver.png'))
         
@@ -74,7 +74,7 @@ class ChargeGameview(arcade.View):
                 
         if not partidas_encontradas:
             # Mensaje en caso de que no haya ninguna partida grabada
-            aviso_vacio = arcade.gui.UILabek(
+            aviso_vacio = arcade.gui.UILabel(
                 text="No se encontraron partidas guardadas.",
                 width=400,
                 height=35,

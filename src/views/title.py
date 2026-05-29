@@ -12,9 +12,9 @@ class TitleView(arcade.View):
         self.manager = arcade.gui.UIManager()
         
         # Cargamos las imágenes del fondo y los botones
-        graficos = os.path.join('assets', 'graphics')
+        fondos = os.path.join('assets', 'fondos')
         botones = os.path.join('assets', 'botones')
-        self.background = arcade.load_texture(os.path.join(graficos, 'fondo_menu.png'))
+        self.background = arcade.load_texture(os.path.join(fondos, 'fondo_menu.png'))
         self.tex_ajustes = arcade.load_texture(os.path.join(botones,'boton_ajustes.png'))
         self.cargar_button = arcade.load_texture(os.path.join(botones,'boton_cargar_partida.png'))
         self.nueva_partida_button = arcade.load_texture(os.path.join(botones,'boton_nueva_partida.png'))

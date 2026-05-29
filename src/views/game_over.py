@@ -7,11 +7,11 @@ class GameOverView(arcade.View):
         super().__init__()
         self.manager = arcade.gui.UIManager()
 
-        graficos = os.path.join('assets', 'graphics') #Cambiar a otro o lo que querais.
+        fondos = os.path.join('assets', 'fondos') #Cambiar a otro o lo que querais.
         botones = os.path.join('assets', 'botones') #Cambiar a otro o lo que querais.
-        self.background = arcade.load_texture(os.path.join(graficos, 'fondo_menu.png'))
+        self.background = arcade.load_texture(os.path.join(fondos, 'fondo_menu.png'))
         #Lo cambiamos a un nuevo boton
-        self.tex_reiniciar = arcade.load_texture(os.path.join(botones, 'boton_ajustes.png'))
+        self.tex_reiniciar = arcade.load_texture(os.path.join(botones, 'boton_reiniciar.png'))
         self.tex_salir = arcade.load_texture(os.path.join(botones, 'boton_pantalla_completa.png'))
     
     def on_show_view(self):

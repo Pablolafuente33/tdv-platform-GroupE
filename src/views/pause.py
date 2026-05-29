@@ -10,9 +10,9 @@ class PauseView(arcade.View):
         self.manager = arcade.gui.UIManager()
         
         # Cargamos los gráficos (reutilizando los que ya tienes)
-        graficos = os.path.join('assets', 'graphics')
+        fondos = os.path.join('assets', 'fondos')
         botones = os.path.join('assets', 'botones')
-        self.background = arcade.load_texture(os.path.join(graficos, 'pausa.png'))
+        self.background = arcade.load_texture(os.path.join(fondos, 'pausa.png'))
         self.tex_reanudar = arcade.load_texture(os.path.join(botones, 'boton_jugar.png'))
         self.tex_reiniciar = arcade.load_texture(os.path.join(botones, 'boton_reiniciar.png')) 
         self.tex_volumen = arcade.load_texture(os.path.join(botones, 'boton_volumen.png'))
