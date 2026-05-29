@@ -8,7 +8,7 @@ En cada .tmx hay:
 
 import arcade
 import os
-from Entidades.Enemigos import EsqueletoEnemigo, DuendeEnemigo, CocodriloEnemigo
+from Entidades.Enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
 from constantes import WINDOW_HEIGHT, WINDOW_WIDTH
 
 # ConstaNTES DE VENTANA
@@ -137,7 +137,7 @@ class Room1(Habitacion):
         cy = (WINDOW_HEIGHT)  // 2                               
         enemigos = []                                                     
         for dx, dy in [(-200, 100), (200, -100)]:                         
-            e = DuendeEnemigo()                                           
+            e = Enemigo2()                                           
             e.center_x = cx + dx                                          
             e.center_y = cy + dy                                          
             enemigos.append(e)                                             
@@ -157,8 +157,8 @@ class Room2(Habitacion):
             cy = (WINDOW_HEIGHT)  // 2                               
             enemigos = []                                                     
             for EnemyClass, dx, dy in [                                       
-                (EsqueletoEnemigo, -150,  50),                                
-                (EsqueletoEnemigo,     150, -50),                                
+                (Enemigo1, -150,  50),                                
+                (Enemigo1,     300, -50),                                
             ]:                                                                
                 e = EnemyClass()                                              
                 e.center_x = cx + dx                                          
@@ -182,7 +182,7 @@ class Room3(Habitacion):
         if not self.nivel_pasado:
             cx = (WINDOW_WIDTH)  // 2                               
             cy = (WINDOW_HEIGHT) // 2                               
-            e = CocodriloEnemigo()                                             
+            e = Boss1()                                             
             e.center_x = cx                                                     
             e.center_y = cy                                                     
             return [e]
@@ -198,7 +198,24 @@ class Room4(Habitacion):
                              Puerta("r", leads_to=6) 
                          ],
                          tmx_dir="room4.tmx")
-
+        
+    def spawn(self) -> list:                                               
+        if not self.nivel_pasado:
+            cx = (WINDOW_WIDTH)  // 2                               
+            cy = (WINDOW_HEIGHT)  // 2                               
+            enemigos = []                                                     
+            for EnemyClass, dx, dy in [                                       
+                (Enemigo3, -150,  100),                                
+                (Enemigo3,     150, 100),                                
+            ]:                                                                
+                e = EnemyClass()                                              
+                e.center_x = cx + dx                                          
+                e.center_y = cy + dy                                          
+                enemigos.append(e)                                             
+            return enemigos
+        else:
+            return [] 
+        
 class Room5(Habitacion):
     def __init__(self):
         super().__init__(5, 
@@ -207,7 +224,23 @@ class Room5(Habitacion):
                              Puerta("u", leads_to=7) 
                          ],
                          tmx_dir="room5.tmx")
-
+    def spawn(self) -> list:                                               
+        if not self.nivel_pasado:
+            cx = (WINDOW_WIDTH)  // 2                               
+            cy = (WINDOW_HEIGHT)  // 2                               
+            enemigos = []                                                     
+            for EnemyClass, dx, dy in [                                       
+                (Enemigo1, -150,  100),
+                (Enemigo2, 100, 100)                                ,                                
+            ]:                                                                
+                e = EnemyClass()                                              
+                e.center_x = cx + dx                                          
+                e.center_y = cy + dy                                          
+                enemigos.append(e)                                             
+            return enemigos
+        else:
+            return []
+         
 class Room6(Habitacion):
     def __init__(self):
         super().__init__(6, 
@@ -215,6 +248,21 @@ class Room6(Habitacion):
                              Puerta("l", leads_to=4)
                          ],
                          tmx_dir="room6.tmx")
+    def spawn(self) -> list:                                               
+        if not self.nivel_pasado:
+            cx = (WINDOW_WIDTH)  // 2                               
+            cy = (WINDOW_HEIGHT)  // 2                               
+            enemigos = []                                                     
+            for EnemyClass, dx, dy in [                                       
+                (Boss2, -150,  100),
+            ]:                                                                
+                e = EnemyClass()                                              
+                e.center_x = cx + dx                                          
+                e.center_y = cy + dy                                          
+                enemigos.append(e)                                             
+            return enemigos
+        else:
+            return []
         
 class Room7(Habitacion):
     def __init__(self):
@@ -223,5 +271,20 @@ class Room7(Habitacion):
                              Puerta("d", leads_to=5)
                          ],
                          tmx_dir="room7.tmx")
-
+    def spawn(self) -> list:                                               
+        if not self.nivel_pasado:
+            cx = (WINDOW_WIDTH)  // 2                               
+            cy = (WINDOW_HEIGHT)  // 2                               
+            enemigos = []                                                     
+            for EnemyClass, dx, dy in [                                       
+                (Boss3, 200,  200),
+            ]:                                                                
+                e = EnemyClass()                                              
+                e.center_x = cx + dx                                          
+                e.center_y = cy + dy                                          
+                enemigos.append(e)                                             
+            return enemigos
+        else:
+            return []
+        
 HABITACIONES = [Room0(), Room1(), Room2(), Room3(), Room4(), Room5(), Room6(), Room7()]

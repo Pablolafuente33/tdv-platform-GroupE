@@ -104,7 +104,7 @@ class Enemigo(arcade.TextureAnimationSprite):
 
     def update_animation_state(self,delta_time):
         pass
-class EsqueletoEnemigo(Enemigo):
+class Enemigo1(Enemigo):
     def __init__(self):
         super().__init__()
         self.health = 100
@@ -132,7 +132,7 @@ class EsqueletoEnemigo(Enemigo):
     def update_animation_state(self, delta_time):
         self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
         
-class DuendeEnemigo(Enemigo):
+class Enemigo2(Enemigo):
     def __init__(self):
         super().__init__()
         self.health = 50
@@ -140,7 +140,7 @@ class DuendeEnemigo(Enemigo):
         self.velocidad = 3
         self.detect_distance = 250
         
-        self.danno = 25
+        self.danno = 15
         self.coolldown_max = 7
         self.cooldown = 0
 
@@ -160,8 +160,36 @@ class DuendeEnemigo(Enemigo):
     def update_animation_state(self, delta_time):
         self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
 
+class Enemigo3(Enemigo):
+    def __init__(self):
+        super().__init__()
+        self.health = 40
+        self.max_health = 40
+        self.velocidad = 3
+        self.detect_distance = 250
+        
+        self.danno = 15
+        self.coolldown_max = 5
+        self.cooldown = 0
 
-class CocodriloEnemigo(Enemigo):
+        self.scale = 2.5
+
+        #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
+        self.gestor_animaciones = Gestor_animaciones(
+            sprite=self,
+            spritesheet_idle_path = os.path.join('assets','graphics','Enemigo_3.png'),
+            tamanno_sprite= (64, 64),
+            columns= 6,
+            count=6,
+            duracion= 150
+        )
+
+    
+    def update_animation_state(self, delta_time):
+        self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
+
+
+class Boss1(Enemigo):
     def __init__(self):
         super().__init__()
         self.health = 150
@@ -169,7 +197,7 @@ class CocodriloEnemigo(Enemigo):
         self.velocidad = 1.5
         self.detect_distance = 100  
 
-        self.danno = 5
+        self.danno = 15
         self.coolldown_max = 2
         self.cooldown = 0
 
@@ -180,6 +208,64 @@ class CocodriloEnemigo(Enemigo):
         self.gestor_animaciones = Gestor_animaciones(
             sprite=self,
             spritesheet_idle_path = os.path.join('assets','graphics','Boss_1.png'),
+            tamanno_sprite= (64, 64),
+            columns= 6,
+            count=6,
+            duracion= 150
+        )
+
+
+    def update_animation_state(self, delta_time):
+        self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
+
+class Boss2(Enemigo):
+    def __init__(self):
+        super().__init__()
+        self.health = 250
+        self.max_health = 300
+        self.velocidad = 3
+        self.detect_distance = 150  
+
+        self.danno = 15
+        self.coolldown_max = 2
+        self.cooldown = 0
+
+        self.scale = 2.5
+
+
+        #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
+        self.gestor_animaciones = Gestor_animaciones(
+            sprite=self,
+            spritesheet_idle_path = os.path.join('assets','graphics','Boss_2.png'),
+            tamanno_sprite= (64, 64),
+            columns= 6,
+            count=6,
+            duracion= 150
+        )
+
+
+    def update_animation_state(self, delta_time):
+        self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
+
+class Boss3(Enemigo):
+    def __init__(self):
+        super().__init__()
+        self.health = 350
+        self.max_health = 500
+        self.velocidad = 3
+        self.detect_distance = 200  
+
+        self.danno = 20
+        self.coolldown_max = 2
+        self.cooldown = 0
+
+        self.scale = 2.5
+
+
+        #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
+        self.gestor_animaciones = Gestor_animaciones(
+            sprite=self,
+            spritesheet_idle_path = os.path.join('assets','graphics','Boss_3.png'),
             tamanno_sprite= (64, 64),
             columns= 6,
             count=6,
