@@ -11,6 +11,7 @@ from constantes import *
 
 from views.game_over import GameOverView
 from views.pause import PauseView
+from views.winner_view import VictoryView
 #Para mantener el aspecto retro
 from pyglet.gl import GL_NEAREST
 
@@ -72,6 +73,12 @@ class GameView(arcade.View):
             self.current_room_id = datos_carga["sala_actual"]
             self.tiempo_jugado = datos_carga["tiempo_jugado_segundos"]
             self.dificultad = datos_carga["dificultad"]
+
+            #Restauramos las habitaciones tambiém
+            if "habitaciones" in datos_carga:
+                for id_sala, pasado in datos_carga["habitaciones"].items():
+                    id_sala_int = int(id_sala)
+                    HABITACIONES[id_sala_int].nivel_pasado = pasado
         else:
             # si no hay datos o es cambio de sala
             self.current_room_id = room_id
@@ -612,6 +619,24 @@ class GameView(arcade.View):
                 self.physics_engine = arcade.PhysicsEngineSimple(
                         self.player_sprite, [self.wall_list]
                     )
+            # Habremos completado el juego en el caso que hayamos pasado toddas las habitaciones
+            juego_completado = all(nivel.nivel_pasado for nivel in HABITACIONES)
+            if juego_completado:
+                print("¡ENHORABUENA! Todos los enemigos han sido derrotados.")
+
+                if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                    self.window.bgm_player.delete()
+                    self.window.bgm_player = None
+                self.window.current_bgm_track = None
+
+                vista_victoria = VictoryView(
+                    nombre_partida=self.nombre_partida,
+                    tiempo_jugado = self.tiempo_jugado,
+                    dificultad = self.dificultad
+                )
+                self.window.show_view(vista_victoria)
+                return
+
             # Actualizamos el cooldoewn del arma que llevamos.
             arma = self.player_sprite.objeto_equipado()
             if arma is not None:
@@ -692,6 +717,8 @@ class GameView(arcade.View):
                 "cooldown_actual": enemigo.cooldown
             }
             lista_enemigos.append(datos_enemigo)
+        #También hay que ver que es lo que pasa en cada sala ( si la hemso superado)
+        salas = {str(id_sala): sala.nivel_pasado for id_sala, sala in enumerate(HABITACIONES)}
         datos = {
             "nombre_partida": self.nombre_partida,
             "tiempo_jugado_segundos": self.tiempo_jugado,
@@ -702,7 +729,8 @@ class GameView(arcade.View):
                 "pos_x": self.player_sprite.center_x,
                 "pos_y": self.player_sprite.center_y
             },
-            "enemigos_vivos" : lista_enemigos
+            "enemigos_vivos" : lista_enemigos,
+            "habitaciones" : salas
         }
         
         try:

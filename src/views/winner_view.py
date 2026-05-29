@@ -6,7 +6,7 @@ import sys
 class VictoryView(arcade.View):
     def __init__(self, nombre_partida, tiempo_jugado, dificultad):
         super().__init__()
-        self.manager = arcade.hui.UIManager()
+        self.manager = arcade.gui.UIManager()
 
         self.nombre_partida = nombre_partida
         self.dificultad = dificultad
@@ -15,35 +15,35 @@ class VictoryView(arcade.View):
         segundos = int(tiempo_jugado % 60)
         self.tiempo = f"{minutos:02d} : {segundos:02d}"
 
-        graficos = os.path.join('assets', 'graphics')
+        fondos = os.path.join('assets', 'fondos')
         botones = os.path.join('assets', 'botones')
 
-        self.background = arcade.load_texture(os.path.join(graficos, 'victoria'))
-        self.tex_menu = arcade.load_texture(os.path.join(botones, 'boton_menu'))
-        self.tex_cerrar =  arcade.load_texture(os.path.join(botones, 'boton_cerrar'))
+        self.background = arcade.load_texture(os.path.join(fondos, 'victoria.png'))
+        self.tex_menu = arcade.load_texture(os.path.join(botones, 'boton_menu.png'))
+        self.tex_cerrar =  arcade.load_texture(os.path.join(botones, 'boton_cerrar.png'))
         
         self.music = arcade.load_sound(os.path.join('assets', 'music', 'VictorySound.mp3'),
                                        streaming= True)
 
-        def on_show_view(self):
-            self.manager.enable()
-            self.setup_gui()
-            volumen_actual = getattr(self.window, "volumen_guardado", 0.2)
+    def on_show_view(self):
+        self.manager.enable()
+        self.setup_gui()
+        volumen_actual = getattr(self.window, "volumen_guardado", 0.2)
         
-            # Comprobamos que no esté sonando ya la de victoria para no duplicarla
-            if not hasattr(self.window, "current_bgm_track") or self.window.current_bgm_track != "victory":
-                # Quitar música que estuviera sonando
-                if hasattr(self.window, "bgm_player") and self.window.bgm_player:
-                    self.window.bgm_player.delete()
+        # Comprobamos que no esté sonando ya la de victoria para no duplicarla
+        if not hasattr(self.window, "current_bgm_track") or self.window.current_bgm_track != "victory":
+            # Quitar música que estuviera sonando
+            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                self.window.bgm_player.delete()
                 
                 # Lanzamos el tema de victoria en bucle
-                self.window.bgm_player = self.music_victory.play(loop=True, volume=volumen_actual)
+                self.window.bgm_player = self.music.play(loop=True, volume=volumen_actual)
                 self.window.current_bgm_track = "victory"
         
-        def on_hide_view(self):
+    def on_hide_view(self):
             self.manager.disable()
 
-        def setup_gui(self):
+    def setup_gui(self):
             self.manager.clear()
             anchor = arcade.gui.UIAnchorLayout()
 
@@ -52,7 +52,7 @@ class VictoryView(arcade.View):
             texto_estadisticas = (
                 f"HÉROE: {self.nombre_partida.upper()}\n\n"
                 f"DIFICULTAD SUPERADA: {self.dificultad}\n\n"
-                f"TIEMPO TOTAL DE JUEGO: {self.tiempo_formateado}"
+                f"TIEMPO TOTAL DE JUEGO: {self.tiempo}"
             )
 
             cuadro_stats = arcade.gui.UITextArea(
@@ -61,7 +61,7 @@ class VictoryView(arcade.View):
                 height=140,
                 text_color=arcade.color.ORANGE_PEEL,
                 font_size=18,
-                )
+            )
             v_box.add(cuadro_stats)
 
             v_box.add(arcade.gui.UISpace(height=20))
@@ -69,7 +69,7 @@ class VictoryView(arcade.View):
             btn_menu = arcade.gui.UITextureButton(
                 texture = self.tex_menu,
                 width=280,
-                height=50
+                height=150
             )
 
             @btn_menu.event("on_click")
@@ -86,7 +86,7 @@ class VictoryView(arcade.View):
             
             v_box.add(btn_menu) 
 
-            btn_salir = arcade.gui.UIFlatButton(texture = self.tex_cerrar, width=280, height=50)
+            btn_salir = arcade.gui.UITextureButton(texture = self.tex_cerrar, width=100, height=50)
         
             @btn_salir.event("on_click")
             def on_click_salir(event):
@@ -98,7 +98,7 @@ class VictoryView(arcade.View):
                 anchor_x="center",
                 anchor_y="center", 
                 align_y=-60
-                )
+            )
             
             anchor.add(
                 child=btn_salir, 
@@ -110,13 +110,12 @@ class VictoryView(arcade.View):
 
             self.manager.add(anchor)
 
-            def on_draw(self):
-                self.clear()
-                # Renderizamos el tapiz de fondo del grupo
-                arcade.draw_texture_rect(
-                    texture=self.background,
-                    rect=arcade.LRBT(0, self.window.width, 0, self.window.height)
-                )
-                self.manager.add(self.manager.draw())
-                self.manager.draw()
+    def on_draw(self):
+        self.clear()
+        # Renderizamos el tapiz de fondo del grupo
+        arcade.draw_texture_rect(
+            texture=self.background,
+                rect=arcade.LRBT(0, self.window.width, 0, self.window.height)
+            )
+        self.manager.draw()
 
