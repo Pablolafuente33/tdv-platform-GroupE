@@ -11,4 +11,9 @@ Lucharemos y avanzaremos por el castillo para encontrar a la princesa y poder ll
 
 En este camino, a medida que vamos derrocando a los distintos enemigos podremos ir desbloqueando diferentes objetos o armas para poder avanzar más facilmente, o no.
 
+## Desarrollo del juego
+El juego se desarrolla dentro de mazmorras en la cuales el protagonista va a encontrar diferentes enemigos que van a tratar de derrotarlo para que no pueda escapar de la prisión.
 
+Se compone de un total de 6 clases de enemigos. 3 de ellos son considerados enemigos normales, los cuales dependiendo del nivel de dificultad que se haya seleccionado aparecerán 1 o más enemigos que tratarán de impedir el avanze, necesitando así derrotar a todos ellos para poder pasar a la siguiente habitación ademñas de que se le proporcionará al protagonista nuevos objetos que le ayudarán a superar las siguientes pruebas. Tras pasar esos enemigos que a priori son más fáciles de superar, se encuentra un "boss", único, que es más dificil de vencer y tendrá más vida que los demás de caracteres.
+
+Para ello el personaje no irá al descubierto a lograr dicha azaña sino que, desde el principio se le 

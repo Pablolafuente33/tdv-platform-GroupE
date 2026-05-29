@@ -9,10 +9,11 @@ class GameOverView(arcade.View):
 
         fondos = os.path.join('assets', 'fondos') #Cambiar a otro o lo que querais.
         botones = os.path.join('assets', 'botones') #Cambiar a otro o lo que querais.
-        self.background = arcade.load_texture(os.path.join(fondos, 'fondo_menu.png'))
+        self.background = arcade.load_texture(os.path.join(fondos, 'game_over.png'))
         #Lo cambiamos a un nuevo boton
         self.tex_reiniciar = arcade.load_texture(os.path.join(botones, 'boton_reiniciar.png'))
         self.tex_salir = arcade.load_texture(os.path.join(botones, 'boton_pantalla_completa.png'))
+        self.tex_menu = arcade.load_texture(os.path.join(botones, 'boton_menu.png'))
     
     def on_show_view(self):
         self.manager.enable()
@@ -41,8 +42,16 @@ class GameOverView(arcade.View):
             height=150
         )
 
+        menu_button = arcade.gui.UITextureButton(
+            texture=self.tex_menu,
+            width=300,
+            height=150
+        )
+
         v_box.add(retry_button)
+        v_box.add(menu_button)
         v_box.add(exit_button)
+
 
         # --- EVENTOS DE LOS BOTONES ---
         @retry_button.event("on_click")
@@ -63,7 +72,7 @@ class GameOverView(arcade.View):
             child=v_box, 
             anchor_x="center", 
             anchor_y="center", 
-            align_y=-60
+            align_y=-100
         )
         self.manager.add(anchor)
 

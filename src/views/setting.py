@@ -11,7 +11,7 @@ class SettingsView(arcade.View):
         fondos = os.path.join('assets', 'fondos')
         botones = os.path.join('assets', 'botones')
         
-        self.background = arcade.load_texture(os.path.join(fondos, 'fondo_ajustes.png'))
+        self.background = arcade.load_texture(os.path.join(fondos, 'ajustes.png'))
         self.tex_volumen = arcade.load_texture(os.path.join(botones, 'boton_volumen.png'))
         self.tex_pantalla = arcade.load_texture(os.path.join(botones, 'boton_pantalla_completa.png'))
         self.tex_volver = arcade.load_texture(os.path.join(botones, 'boton_volver.png'))

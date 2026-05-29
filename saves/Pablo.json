@@ -1,0 +1,20 @@
+{
+    "nombre_partida": "Pablo",
+    "tiempo_jugado_segundos": 63.46476860000985,
+    "dificultad": "Normal",
+    "sala_actual": 3,
+    "jugador": {
+        "vida": 10,
+        "pos_x": 798.6646805546889,
+        "pos_y": 206.38
+    },
+    "enemigos_vivos": [
+        {
+            "clase_enemigo": "CocodriloEnemigo",
+            "pos_x": 730.65369500557,
+            "pos_y": 450.14,
+            "vida_actual": 30,
+            "cooldown_actual": 0.5719094999949448
+        }
+    ]
+}
