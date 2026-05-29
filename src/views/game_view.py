@@ -594,6 +594,16 @@ class GameView(arcade.View):
             self.window.show_view(GameOverView())
 
             return # Para que no se haga nada más
+        
+        # Si la cantidad de motores no coincide con los enemigos vivos, reconstruimos la lista de motores para que solo queden los válidos.
+        if len(self.enemy_physics_engines) != len(self.enemy_list):
+            self.enemy_physics_engines = []
+            for enemigo in self.enemy_list:
+                engine = arcade.PhysicsEngineSimple(
+                    enemigo, [self.wall_list, self.scene["puertas_cerradas"]]
+                )
+                self.enemy_physics_engines.append(engine)
+
         #Si no se está haciendo la transición, el personaje se mueve al azar
         if not self.player_locked:
             self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
