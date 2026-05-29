@@ -193,8 +193,35 @@ class Room4(Habitacion):
     def __init__(self):
         super().__init__(4, 
                          puertas=[
-                             Puerta("d", leads_to=3) 
+                             Puerta("d", leads_to=3),
+                             Puerta("l", leads_to=5),
+                             Puerta("r", leads_to=6) 
                          ],
                          tmx_dir="room4.tmx")
 
-HABITACIONES = [Room0(), Room1(), Room2(), Room3(), Room4()]
+class Room5(Habitacion):
+    def __init__(self):
+        super().__init__(5, 
+                         puertas=[
+                             Puerta("r", leads_to=4),
+                             Puerta("u", leads_to=7) 
+                         ],
+                         tmx_dir="room5.tmx")
+
+class Room6(Habitacion):
+    def __init__(self):
+        super().__init__(6, 
+                         puertas=[
+                             Puerta("l", leads_to=4)
+                         ],
+                         tmx_dir="room6.tmx")
+        
+class Room7(Habitacion):
+    def __init__(self):
+        super().__init__(7, 
+                         puertas=[
+                             Puerta("d", leads_to=5)
+                         ],
+                         tmx_dir="room7.tmx")
+
+HABITACIONES = [Room0(), Room1(), Room2(), Room3(), Room4(), Room5(), Room6(), Room7()]
