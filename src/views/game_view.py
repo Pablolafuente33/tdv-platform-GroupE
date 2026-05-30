@@ -708,7 +708,7 @@ class GameView(arcade.View):
                 if (enemigo.center_x < -margen or enemigo.center_x > WINDOW_WIDTH + margen or 
                     enemigo.center_y < -margen or enemigo.center_y > WINDOW_HEIGHT + margen):
                     print("¡Un enemigo se salió del mapa por un glitch! Eliminándolo...")
-                    enemigo.health = 0 
+                    enemigo.kill()
                 
                 #Comprobación colisión con personaje
                 if arcade.check_for_collision(enemigo, self.player_sprite):

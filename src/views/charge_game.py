@@ -29,22 +29,8 @@ class ChargeGameview(arcade.View):
         
         anchor = arcade.gui.UIAnchorLayout()
         
-        # Contenedor vertical principal
-        v_box = arcade.gui.UIBoxLayout(space_between=15)
-        
-        # Título de la pantalla
-        titulo = arcade.gui.UILabel(
-            text="SELECCIONAR PARTIDA",
-            width=400,
-            height=40,
-            text_color=arcade.color.ORANGE_PEEL,
-            font_size=25,
-            font_name="BlackCastleMF"
-        )
-        v_box.add(titulo)
-        
         # Contenedor para la lista de partidas encontradas
-        lista_partidas_box = arcade.gui.UIBoxLayout(space_between=10)
+        v_box = arcade.gui.UIBoxLayout(space_between=0)
         
         # --- ESCANEO DE LA CARPETA DE GUARDADOS ---
         carpeta_saves = "saves"
@@ -63,22 +49,23 @@ class ChargeGameview(arcade.View):
                 btn_partida = arcade.gui.UITextureButton(
                     text=nombre_partida.upper(),
                     texture = self.tex_vacio,
-                    width=300,
+                    width=500,
                     height=100,
+                    align_x = "center",
                     style = {
                         "normal":{
                         "font_name" : "BlackCastleMF",
-                        "font_size" : 20,
+                        "font_size" : 17,
                         "font_color" : (212, 175, 55)
                         }, 
                         "hover":{
                         "font_name" : "BlackCastleMF",
-                        "font_size" : 20,
+                        "font_size" : 17,
                         "font_color" : (212, 175, 55)
                         },
                         "press":{
                         "font_name" : "BlackCastleMF",
-                        "font_size" : 20,
+                        "font_size" : 17,
                         "font_color" : (212, 175, 55)
                         } 
                     }
@@ -89,7 +76,7 @@ class ChargeGameview(arcade.View):
                 def on_click_cargar(event, archivo_partida=archivo):
                     self.cargar_y_lanzar_partida(archivo_partida)
                     
-                lista_partidas_box.add(btn_partida)
+                v_box.add(btn_partida)
                 
         if not partidas_encontradas:
             # Mensaje en caso de que no haya ninguna partida grabada
@@ -101,15 +88,14 @@ class ChargeGameview(arcade.View):
                 font_size=16,
                 font_name = "BlackCastleMF",
             )
-            lista_partidas_box.add(aviso_vacio)
+            v_box.add(aviso_vacio)
             
-        v_box.add(lista_partidas_box)
         
         # Bajar todo el menú central para que no tape vuestros títulos del fondo
         anchor.add(child=v_box, 
                    anchor_x="center", 
                    anchor_y="center", 
-                   align_y=-50)
+                   align_y=-95)
         
         btn_volver = arcade.gui.UITextureButton(
             texture=self.tex_volver,

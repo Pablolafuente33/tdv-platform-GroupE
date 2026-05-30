@@ -16,7 +16,7 @@ class NewGameView(arcade.View):
         self.normal_button = arcade.load_texture(os.path.join(botones,'boton_normal.png'))
         self.facil_button = arcade.load_texture(os.path.join(botones,'boton_facil.png'))
         self.back_button = arcade.load_texture(os.path.join(botones, 'boton_volver.png'))
-        self.dificultad = 'Normal'
+        self.dificultad = "Normal"
         
         self.fuente = arcade.load_font(os.path.join('assets','fuente','BlackCastleMF.ttf' ))
 
@@ -102,13 +102,13 @@ class NewGameView(arcade.View):
                 btn.height = 130
 
             # El botón que ha sido activado lo hacemos más grande
-            if self.dificultad == "Fácil":
+            if self.dificultad == "Facil":
                 btn_facil.width = 270
                 btn_facil.height = 190
             elif self.dificultad == "Normal":
                 btn_normal.width = 270
                 btn_normal.height = 190
-            elif self.dificultad == "Difícil":
+            elif self.dificultad == "Dificil":
                 btn_dificil.width = 270
                 btn_dificil.height = 190
             
@@ -118,23 +118,20 @@ class NewGameView(arcade.View):
                 
         @btn_facil.event("on_click")
         def on_click_facil(event):
-            self.dificultad = "Fácil"
+            self.dificultad = "Facil"
             print("Dificultad seleccionada: Fácil")
-            print(self.dificultad)
             actualizar_botones_dificultad()
 
         @btn_normal.event("on_click")
         def on_click_normal(event):
             self.dificultad = "Normal"
             print("Dificultad seleccionada: Normal")
-            print(self.dificultad)
             actualizar_botones_dificultad()
 
         @btn_dificil.event("on_click")
         def on_click_dificil(event):
-            self.dificultad = "Difícil"
+            self.dificultad = "Dificil"
             print("Dificultad seleccionada: Difícil")
-            print(self.dificultad)
             actualizar_botones_dificultad()
     
         # Botón para empezar a jugar
@@ -190,7 +187,7 @@ class NewGameView(arcade.View):
             # Asignamos el nombre a la partida antes de mostrarla
             juego_view.nombre_partida = nombre_partida
             juego_view.tiempo_total_jugado = 0.0
-            juego_view.dificultad_partida = self.dificultad
+            juego_view.dificultad = self.dificultad
             juego_view.setup()
             juego_view.guardar_partida()
             self.window.show_view(juego_view)

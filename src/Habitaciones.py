@@ -142,6 +142,8 @@ class Room1(Habitacion):
         margen = 80
         RADIO = 2500 if dificultad != "Dificil" else 0
 
+        limite_ancho = int(self.tile_map.width * self.tile_map.tile_width * TILE_SCALING)
+        limite_alto = int(self.tile_map.height * self.tile_map.tile_height * TILE_SCALING)
         for _ in range(cantidad_enemigos):
             e = Enemigo2()
             intentos = 0
@@ -150,8 +152,8 @@ class Room1(Habitacion):
             while not posicion_valida and intentos < 100:
                 intentos += 1
                 #Tomamos una posición aleatoria
-                e.center_x = random.randint(margen,WINDOW_WIDTH - margen)                                                
-                e.center_y = random.randint(margen,WINDOW_HEIGHT - margen)
+                e.center_x = random.randint(margen,limite_ancho - margen)                                                
+                e.center_y = random.randint(margen,limite_alto - margen)
 
                 # Ci¡omprobamos que no spawnee encima del jugador
                 distancia_al_jugador = math.sqrt(
@@ -170,7 +172,7 @@ class Room1(Habitacion):
                         colisiona_con_otro_enemigo = True
                 
                 # Si no choca con nada, la posición es apta
-                if not colision_obst and not colisiona_con_otro_enemigo:
+                if not colision_obst and not colisiona_enemigo:
                     posicion_valida = True
 
             #Lo añadimos a la lista
@@ -256,7 +258,7 @@ class Room3(Habitacion):
                         colisiona_con_otro_enemigo = True
                 
                 # Si no choca con nada, la posición es apta
-                if not colision_obst and not colisiona_con_otro_enemigo:
+                if not colision_obst and not colisiona_enemigo:
                     posicion_valida = True
 
             #Lo añadimos a la lista
@@ -322,7 +324,7 @@ class Room4(Habitacion):
                         colisiona_con_otro_enemigo = True
                 
                 # Si no choca con nada, la posición es apta
-                if not colision_obst and not colisiona_con_otro_enemigo:
+                if not colision_obst and not colisiona_enemigo:
                     posicion_valida = True
 
             #Lo añadimos a la lista
