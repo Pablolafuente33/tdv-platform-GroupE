@@ -43,7 +43,7 @@ class Player(arcade.TextureAnimationSprite):
         self.health = 100
         self.max_health = 100
         #Para los objetos
-        self.inventario = [Espada(), Lanza(), LanzaBoomerang(), LanzaBombas(), None]
+        self.inventario = [Espada(), Lanza(), None, None, None]
         self.equipped_index = 0
         self.facing_direction = 0
     
@@ -70,13 +70,12 @@ class Player(arcade.TextureAnimationSprite):
             item.use()
 
     def recoger_objeto(self, item):
-        """
-        Esto lo podemos implementar tanto para cuando nos encontremos encima de dicho objeto o 
-        apretando un botón. Creo que al apretar un botón será mas complejo
-        """
-        for i in self.inventario:
-            if i == None:
-                i = item
+        """Busca el primer hueco del inventario y guarda el objeto de la recompensa."""
+        for i in range(len(self.inventario)):
+            if self.inventario[i] is None:
+                self.inventario[i] = item
+                return True
+        return False
 
 
     def atacar(self):

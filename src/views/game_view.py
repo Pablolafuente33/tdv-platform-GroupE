@@ -12,7 +12,7 @@ from constantes import *
 from views.game_over import GameOverView
 from views.pause import PauseView
 from views.winner_view import VictoryView
-from arma import Bomba
+from arma import *
 #Para mantener el aspecto retro
 from pyglet.gl import GL_NEAREST
 
@@ -34,9 +34,13 @@ class GameView(arcade.View):
         self.enemy_list = arcade.SpriteList()
         self.wall_list = None
         self.scene = None
-
+        
         self.lista_proyectiles = arcade.SpriteList()
         self.lista_bombas = arcade.SpriteList()
+        self.recompensas = {
+            2: LanzaBoomerang(),
+            5: LanzaBombas(),
+        }
 
         # Motor de física
         self.physics_engine = None
@@ -631,6 +635,16 @@ class GameView(arcade.View):
             #Si no hay enemigos es qeu nos hemos pasado el nivel.
             if len(self.enemy_list) == 0:
                 self.puertas_bloqueadas.clear() #Limpiamos la lista donde están las puerrtas bloqueadas
+
+                if not HABITACIONES[self.current_room_id].nivel_pasado:
+                    
+                    # Verificamos si esta sala tiene un arma asignada como recompensa
+                    if self.current_room_id in self.recompensas:
+                        arma_nueva = self.recompensas[self.current_room_id]
+                        
+                        # Intentamos meterla en el inventario usando el método corregido
+                        exito = self.player_sprite.recoger_objeto(arma_nueva)
+
                 HABITACIONES[self.current_room_id].nivel_pasado = True
 
                 #Desactivamos las colisiones y hacemos invisibles las puertas cerradas
