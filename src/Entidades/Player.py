@@ -8,7 +8,7 @@ import arcade
 import os
 from pathlib import Path
 from Entidades.gestor_animaciones import Gestor_animaciones
-from EspadaAtaque import EspadaAtaque
+from espadaAtaque import EspadaAtaque
 from constantes import PLAYER_SPEED, RIGHT, UP, LEFT, DOWN
 from arma import *
 import math
