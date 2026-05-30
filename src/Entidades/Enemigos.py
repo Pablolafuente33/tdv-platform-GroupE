@@ -190,17 +190,37 @@ class Enemigo3(Enemigo):
 
 
 class Boss1(Enemigo):
-    def __init__(self):
+    def __init__(self, dificultad: str):
         super().__init__()
-        self.health = 150
-        self.max_health = 150
-        self.velocidad = 1.5
-        self.detect_distance = 100  
-
-        self.danno = 15
-        self.coolldown_max = 2
+        
+        match dificultad:
+            case "Facil":
+                self.max_health = 100
+                self.velocidad = 1.1
+                self.detect_distance = 100  
+                self.danno = 10
+                self.coolldown_max = 2.2
+            case "Normal":
+                self.max_health = 150
+                self.velocidad = 1.5
+                self.detect_distance = 100  
+                self.danno = 12
+                self.coolldown_max = 2.1
+            case "Dificil":
+                self.max_health = 175
+                self.velocidad = 1.6
+                self.detect_distance = 200  
+                self.danno = 15
+                self.coolldown_max = 2
+            case _:
+                self.max_health = 150
+                self.velocidad = 1.5
+                self.detect_distance = 100  
+                self.danno = 12
+                self.coolldown_max = 2.1
+        
+        self.health = self.max_health
         self.cooldown = 0
-
         self.scale = 2.5
 
 
@@ -219,17 +239,36 @@ class Boss1(Enemigo):
         self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
 
 class Boss2(Enemigo):
-    def __init__(self):
+    def __init__(self, dificultad):
         super().__init__()
-        self.health = 250
-        self.max_health = 300
-        self.velocidad = 3
-        self.detect_distance = 150  
-
-        self.danno = 15
-        self.coolldown_max = 2
+        match dificultad:
+            case "Facil":
+                self.max_health = 250
+                self.velocidad = 2
+                self.detect_distance = 150  
+                self.danno = 13
+                self.coolldown_max = 2.5
+            case "Normal":
+                self.max_health = 300
+                self.velocidad = 2.5
+                self.detect_distance = 200  
+                self.danno = 17
+                self.coolldown_max = 2
+            case "Dificil":
+                self.max_health = 325
+                self.velocidad = 1.6
+                self.detect_distance = 250  
+                self.danno = 21
+                self.coolldown_max = 2
+            case _:
+                self.max_health = 300
+                self.velocidad = 2.5
+                self.detect_distance = 200 
+                self.danno = 17
+                self.coolldown_max = 2
+        
+        self.health = self.max_health
         self.cooldown = 0
-
         self.scale = 2.5
 
 
@@ -248,19 +287,37 @@ class Boss2(Enemigo):
         self.gestor_animaciones.update(self.change_x, self.change_y, delta_time)
 
 class Boss3(Enemigo):
-    def __init__(self):
+    def __init__(self, dificultad):
         super().__init__()
-        self.health = 350
-        self.max_health = 500
-        self.velocidad = 3
-        self.detect_distance = 200  
-
-        self.danno = 20
-        self.coolldown_max = 2
+        match dificultad:
+            case "Facil":
+                self.max_health = 400
+                self.velocidad = 2.4
+                self.detect_distance = 150  
+                self.danno = 15
+                self.coolldown_max = 2.2
+            case "Normal":
+                self.max_health = 450
+                self.velocidad = 2.8
+                self.detect_distance = 200  
+                self.danno = 20
+                self.coolldown_max = 2.1
+            case "Dificil":
+                self.max_health = 490
+                self.velocidad = 3
+                self.detect_distance = 2500  
+                self.danno = 23
+                self.coolldown_max = 1.9
+            case _:
+                self.max_health = 450
+                self.velocidad = 2.8
+                self.detect_distance = 200  
+                self.danno = 20
+                self.coolldown_max = 2.1
+        
+        self.health = self.max_health
         self.cooldown = 0
-
         self.scale = 2.5
-
 
         #Se inicia gestor de animaciones, dando los valores generales del spritesheet para hacer las animaciones
         self.gestor_animaciones = Gestor_animaciones(

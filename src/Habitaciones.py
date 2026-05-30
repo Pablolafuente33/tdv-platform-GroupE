@@ -8,19 +8,11 @@ En cada .tmx hay:
 
 import arcade
 import os
-from Entidades.Enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
+import random
+import math
+from Entidades.enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
 from constantes import WINDOW_HEIGHT, WINDOW_WIDTH
 
-# ConstaNTES DE VENTANA
-
-TILE_SIZE     = 64
-WALL_COLS     = WINDOW_WIDTH  // TILE_SIZE
-WALL_ROWS     = WINDOW_HEIGHT // TILE_SIZE
-DOOR_TILES    = 3
-
-#Escala para los tiles
-#Ancho: 120/(15*32) = 2.6666
-#Alto: 704 / (9*32) = 2.4444
 TILE_SCALING = 2.5
 
 OPUESTO = {"r":"l", "l":"r", "u":"d", "d":"u"}
@@ -100,7 +92,7 @@ class Habitacion:
         return obstaculos
 
 
-    def spawn(self) -> list:                                               
+    def spawn(self, dificultad: str, jugador) -> list:                                               
         """
         Devuelve lista de enemigos ya instanciados y posicionados.
         Sobreescribir en cada subclase para definir los enemigos de esa sala.
@@ -129,19 +121,61 @@ class Room1(Habitacion):
                          tmx_dir = "room1.tmx")
 
     
-    def spawn(self) -> list:                                              
+    def spawn(self, dificultad: str, jugador) -> list:                                              
         if self.nivel_pasado:
             return []
         
-        cx = (WINDOW_WIDTH)  // 2                               
-        cy = (WINDOW_HEIGHT)  // 2                               
-        enemigos = []                                                     
-        for dx, dy in [(-200, 100), (200, -100)]:                         
-            e = Enemigo2()                                           
-            e.center_x = cx + dx                                          
-            e.center_y = cy + dy                                          
-            enemigos.append(e)                                             
-        return enemigos  
+        match dificultad:
+            case "Facil":
+                cantidad_enemigos = 2
+            case "Normal":
+                cantidad_enemigos = 3
+            case "Dificil":
+                cantidad_enemigos = 4
+            case _ : cantidad_enemigos = 3
+
+        enemigos = []     
+
+        # Miramos los obstáculos de la habitación
+        lista_obstaculos = self.get_wall_list()
+
+        margen = 80
+        RADIO = 2500 if dificultad != "Dificil" else 0
+
+        for _ in range(cantidad_enemigos):
+            e = Enemigo2()
+            intentos = 0
+            posicion_valida = False
+
+            while not posicion_valida and intentos < 100:
+                intentos += 1
+                #Tomamos una posición aleatoria
+                e.center_x = random.randint(margen,WINDOW_WIDTH - margen)                                                
+                e.center_y = random.randint(margen,WINDOW_HEIGHT - margen)
+
+                # Ci¡omprobamos que no spawnee encima del jugador
+                distancia_al_jugador = math.sqrt(
+                    (e.center_x - jugador.center_x) ** 2 + 
+                    (e.center_y - jugador.center_y) ** 2
+                )
+                # Si está demasiado cerca, forzamos repetir el bucle sin comprobar colisiones
+                if distancia_al_jugador < RADIO:
+                    continue
+                
+                #Comprobamos que no se choqye con un obstáculo
+                colision_obst = arcade.check_for_collision_with_list(e, lista_obstaculos)                                                
+                colisiona_enemigo = arcade.check_for_collision_with_list(e, arcade.SpriteList(use_spatial_hash=False))
+                for enemigo_colocado in enemigos:
+                    if arcade.check_for_collision(e, enemigo_colocado):
+                        colisiona_con_otro_enemigo = True
+                
+                # Si no choca con nada, la posición es apta
+                if not colision_obst and not colisiona_con_otro_enemigo:
+                    posicion_valida = True
+
+            #Lo añadimos a la lista
+            enemigos.append(e)
+        return enemigos
  
 class Room2(Habitacion):
     """Tercera sala — muros internos, puertas izquierda y arriba."""
@@ -151,22 +185,16 @@ class Room2(Habitacion):
                         tmx_dir= "room2.tmx"
                                    )
  
-    def spawn(self) -> list:                                               
+    def spawn(self, dificultad:str, jugador) -> list:                                               
         if not self.nivel_pasado:
             cx = (WINDOW_WIDTH)  // 2                               
-            cy = (WINDOW_HEIGHT)  // 2                               
-            enemigos = []                                                     
-            for EnemyClass, dx, dy in [                                       
-                (Enemigo1, -150,  50),                                
-                (Enemigo1,     300, -50),                                
-            ]:                                                                
-                e = EnemyClass()                                              
-                e.center_x = cx + dx                                          
-                e.center_y = cy + dy                                          
-                enemigos.append(e)                                             
-            return enemigos
+            cy = (WINDOW_HEIGHT) // 2                               
+            e = Boss1(dificultad)                                             
+            e.center_x = cx                                                     
+            e.center_y = cy                                                     
+            return [e]
         else:
-            return [] 
+            return []
  
  
 class Room3(Habitacion):
@@ -178,16 +206,62 @@ class Room3(Habitacion):
                          ],
                          tmx_dir="room3.tmx")
 
-    def spawn(self) -> list:                                               
-        if not self.nivel_pasado:
-            cx = (WINDOW_WIDTH)  // 2                               
-            cy = (WINDOW_HEIGHT) // 2                               
-            e = Boss1()                                             
-            e.center_x = cx                                                     
-            e.center_y = cy                                                     
-            return [e]
-        else:
+    def spawn(self, dificultad: str, jugador) -> list:
+        if self.nivel_pasado:
             return []
+        
+        match dificultad:
+            case "Facil":
+                cantidad_enemigos = 1
+            case "Normal":
+                cantidad_enemigos = 2
+            case "Dificil":
+                cantidad_enemigos = 3
+            case _ : 
+                cantidad_enemigos = 2
+
+        enemigos = []     
+
+        # Miramos los obstáculos de la habitación
+        lista_obstaculos = self.get_wall_list()
+
+        margen = 80
+        RADIO = 2500 if dificultad != "Dificil" else 0
+
+        for _ in range(cantidad_enemigos):
+            e = Enemigo1()
+            intentos = 0
+            posicion_valida = False
+
+            while not posicion_valida and intentos < 100:
+                intentos +=1
+                #Tomamos una posición aleatoria
+                e.center_x = random.randint(margen,WINDOW_WIDTH - margen)                                                
+                e.center_y = random.randint(margen,WINDOW_HEIGHT - margen)
+
+                # Ci¡omprobamos que no spawnee encima del jugador
+                distancia_al_jugador = math.sqrt(
+                    (e.center_x - jugador.center_x) ** 2 + 
+                    (e.center_y - jugador.center_y) ** 2
+                )
+                # Si está demasiado cerca, forzamos repetir el bucle sin comprobar colisiones
+                if distancia_al_jugador < RADIO:
+                    continue
+                
+                #Comprobamos que no se choqye con un obstáculo
+                colision_obst = arcade.check_for_collision_with_list(e, lista_obstaculos)                                                
+                colisiona_enemigo = arcade.check_for_collision_with_list(e, arcade.SpriteList(use_spatial_hash=False))
+                for enemigo_colocado in enemigos:
+                    if arcade.check_for_collision(e, enemigo_colocado):
+                        colisiona_con_otro_enemigo = True
+                
+                # Si no choca con nada, la posición es apta
+                if not colision_obst and not colisiona_con_otro_enemigo:
+                    posicion_valida = True
+
+            #Lo añadimos a la lista
+            enemigos.append(e)
+        return enemigos                                               
 
 class Room4(Habitacion):
     def __init__(self):
@@ -199,22 +273,61 @@ class Room4(Habitacion):
                          ],
                          tmx_dir="room4.tmx")
         
-    def spawn(self) -> list:                                               
-        if not self.nivel_pasado:
-            cx = (WINDOW_WIDTH)  // 2                               
-            cy = (WINDOW_HEIGHT)  // 2                               
-            enemigos = []                                                     
-            for EnemyClass, dx, dy in [                                       
-                (Enemigo3, -150,  100),                                
-                (Enemigo3,     150, 100),                                
-            ]:                                                                
-                e = EnemyClass()                                              
-                e.center_x = cx + dx                                          
-                e.center_y = cy + dy                                          
-                enemigos.append(e)                                             
-            return enemigos
-        else:
-            return [] 
+    def spawn(self, dificultad:str, jugador) -> list:                                               
+        if self.nivel_pasado:
+            return []
+        
+        match dificultad:
+            case "Facil":
+                cantidad_enemigos = 1
+            case "Normal":
+                cantidad_enemigos = 2
+            case "Dificil":
+                cantidad_enemigos = 4
+            case _ : cantidad_enemigos = 3
+
+        enemigos = []     
+
+        # Miramos los obstáculos de la habitación
+        lista_obstaculos = self.get_wall_list()
+
+        margen = 80
+        RADIO = 2500 if dificultad != "Dificil" else 0
+
+        for _ in range(cantidad_enemigos):
+            e = Enemigo3()
+            intentos = 0
+            posicion_valida = False
+
+            while not posicion_valida and intentos < 100:
+                intentos += 1
+                #Tomamos una posición aleatoria
+                e.center_x = random.randint(margen,WINDOW_WIDTH - margen)                                                
+                e.center_y = random.randint(margen,WINDOW_HEIGHT - margen)
+
+                # Ci¡omprobamos que no spawnee encima del jugador
+                distancia_al_jugador = math.sqrt(
+                    (e.center_x - jugador.center_x) ** 2 + 
+                    (e.center_y - jugador.center_y) ** 2
+                )
+                # Si está demasiado cerca, forzamos repetir el bucle sin comprobar colisiones
+                if distancia_al_jugador < RADIO:
+                    continue
+                
+                #Comprobamos que no se choqye con un obstáculo
+                colision_obst = arcade.check_for_collision_with_list(e, lista_obstaculos)                                                
+                colisiona_enemigo = arcade.check_for_collision_with_list(e, arcade.SpriteList(use_spatial_hash=False))
+                for enemigo_colocado in enemigos:
+                    if arcade.check_for_collision(e, enemigo_colocado):
+                        colisiona_con_otro_enemigo = True
+                
+                # Si no choca con nada, la posición es apta
+                if not colision_obst and not colisiona_con_otro_enemigo:
+                    posicion_valida = True
+
+            #Lo añadimos a la lista
+            enemigos.append(e)
+        return enemigos
         
 class Room5(Habitacion):
     def __init__(self):
@@ -224,7 +337,7 @@ class Room5(Habitacion):
                              Puerta("u", leads_to=7) 
                          ],
                          tmx_dir="room5.tmx")
-    def spawn(self) -> list:                                               
+    def spawn(self, dificultad:str, jugador) -> list:                                               
         if not self.nivel_pasado:
             cx = (WINDOW_WIDTH)  // 2                               
             cy = (WINDOW_HEIGHT)  // 2                               
@@ -248,19 +361,15 @@ class Room6(Habitacion):
                              Puerta("l", leads_to=4)
                          ],
                          tmx_dir="room6.tmx")
-    def spawn(self) -> list:                                               
+                                                   
+    def spawn(self, dificultad:str, jugador) -> list:                                               
         if not self.nivel_pasado:
             cx = (WINDOW_WIDTH)  // 2                               
-            cy = (WINDOW_HEIGHT)  // 2                               
-            enemigos = []                                                     
-            for EnemyClass, dx, dy in [                                       
-                (Boss2, -150,  100),
-            ]:                                                                
-                e = EnemyClass()                                              
-                e.center_x = cx + dx                                          
-                e.center_y = cy + dy                                          
-                enemigos.append(e)                                             
-            return enemigos
+            cy = (WINDOW_HEIGHT) // 2                               
+            e = Boss2(dificultad)                                             
+            e.center_x = cx                                                     
+            e.center_y = cy                                                     
+            return [e]
         else:
             return []
         
@@ -271,20 +380,16 @@ class Room7(Habitacion):
                              Puerta("d", leads_to=5)
                          ],
                          tmx_dir="room7.tmx")
-    def spawn(self) -> list:                                               
+    def spawn(self, dificultad:str, jugador) -> list:                                               
         if not self.nivel_pasado:
             cx = (WINDOW_WIDTH)  // 2                               
-            cy = (WINDOW_HEIGHT)  // 2                               
-            enemigos = []                                                     
-            for EnemyClass, dx, dy in [                                       
-                (Boss3, 200,  200),
-            ]:                                                                
-                e = EnemyClass()                                              
-                e.center_x = cx + dx                                          
-                e.center_y = cy + dy                                          
-                enemigos.append(e)                                             
-            return enemigos
+            cy = (WINDOW_HEIGHT) // 2                               
+            e = Boss3(dificultad)                                             
+            e.center_x = cx                                                     
+            e.center_y = cy                                                     
+            return [e]
         else:
             return []
+    
         
 HABITACIONES = [Room0(), Room1(), Room2(), Room3(), Room4(), Room5(), Room6(), Room7()]

@@ -5,7 +5,7 @@ import math
 import json
 
 from Entidades.Player import Player
-from Habitaciones import HABITACIONES, OPUESTO
+from habitaciones import HABITACIONES, OPUESTO
 from EspadaAtaque import EspadaAtaque
 from constantes import *
 
@@ -130,7 +130,7 @@ class GameView(arcade.View):
         self.enemy_list = arcade.SpriteList()
 
         if datos_carga is not None:
-            from Entidades.Enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
+            from Entidades.enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
             for datos_enemigos in datos_carga["enemigos_vivos"]:
                 clase = datos_enemigos["clase_enemigo"]
                 if clase == "Enemigo1":
@@ -140,7 +140,11 @@ class GameView(arcade.View):
                 elif clase == "Enemigo3":
                     nuevo_enemigo = Enemigo3()
                 elif clase == "Boss1":
-                    nuevo_enemigo = Boss1()
+                    nuevo_enemigo = Boss1(self.dificultad)
+                elif clase == "Boss2":
+                    nuevo_enemigo = Boss2(self.dificultad)
+                elif clase == "Boss3":
+                    nuevo_enemigo = Boss3(self.dificultad)
                 else:
                     continue
 
@@ -153,7 +157,7 @@ class GameView(arcade.View):
                 self.enemy_list.append(nuevo_enemigo)
         else:
             if not room.nivel_pasado:
-                for enemigo in room.spawn():
+                for enemigo in room.spawn(self.dificultad, self.player_sprite):
                     self.enemy_list.append(enemigo)
             
         self.scene.add_sprite_list("Enemigos", sprite_list = self.enemy_list)

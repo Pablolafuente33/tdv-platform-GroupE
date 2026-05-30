@@ -308,3 +308,8 @@ class Arco(ArmaDistancia):
         )
         return nueva_flecha
     
+class PocionCuración(arcade.Sprite):
+    def __init__(self):
+        imagen = os.path.join('assets', 'objects', 'pocion_vida.png')
+        super().__init__(imagen, scale = 1.5)
+        self.curación = 50
