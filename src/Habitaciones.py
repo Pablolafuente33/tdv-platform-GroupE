@@ -10,7 +10,7 @@ import arcade
 import os
 import random
 import math
-from Entidades.Enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
+from Entidades.enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
 from constantes import WINDOW_HEIGHT, WINDOW_WIDTH
 
 TILE_SCALING = 2.5

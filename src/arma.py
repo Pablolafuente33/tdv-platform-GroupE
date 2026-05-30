@@ -299,13 +299,11 @@ class Bomba(arcade.Sprite):
         self._fase           = self.FASE_ESPERANDO
         self._danno_aplicado = False
 
-    def on_update(self, delta_time, enemy_list=None):
+    def on_update(self, delta_time, enemy_list=None, lista_corazones=None):
         self._timer += delta_time
 
         if self._fase == self.FASE_ESPERANDO:
-            # Parpadeo de la mecha entre frame 0 y 1
             self.texture = self._frames[int(self._timer / 0.3) % 2]
-
             if self._timer >= self.tiempo_mecha:
                 self._fase  = self.FASE_DETONANDO
                 self._timer = 0.0
@@ -322,8 +320,13 @@ class Bomba(arcade.Sprite):
                     dy = enemy.center_y - self.center_y
                     dist = math.sqrt(dx**2 + dy**2) - (enemy.width / 2)
                     if dist <= self.radio_danno:
+                        # Spawneamos corazón solo si va a morir
+                        if lista_corazones is not None and enemy.health - self.danno <= 0:
+                            from arma import CorazonVida
+                            corazon = CorazonVida(enemy.center_x, enemy.center_y)
+                            lista_corazones.append(corazon)
                         enemy.recibir_danno(self.danno)
-                self._danno_aplicado = True
+                self._danno_aplicado = True  # ← solo se ejecuta UNA vez
 
             if self._timer >= self.DUR_EXPLOSION:
                 self.kill()
@@ -356,13 +359,9 @@ class LanzaBombas(ArmaDistancia):
             tiempo_mecha = 1.5,
             escala       = 2.0
         )
-class PocionCuración(arcade.Sprite):
-    def __init__(self):
-        imagen = os.path.join('assets', 'objects', 'pocion_vida.png')
-        super().__init__(imagen, scale = 1.5)
-        self.curación = 50
 
-        # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+ # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # BOOMERANG
 
 class Boomerang(Proyectil):
@@ -437,3 +436,21 @@ class LanzaBoomerang(ArmaDistancia):
             start_y   = player_sprite.center_y,
             direccion = player_sprite.facing_direction
         )
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# CORAZÓN DE VIDA
+class CorazonVida(arcade.Sprite):
+    def __init__(self, x, y):
+        super().__init__(scale=2.0)
+        sheet = arcade.load_spritesheet(
+            os.path.join('assets', 'graphics', 'Vida.png')
+        )
+        frames = sheet.get_texture_grid(
+            size=(16, 16),
+            columns=1,
+            count=1
+        )
+        self.texture = frames[0]
+        self.center_x = x
+        self.center_y = y
+        self.curacion = 10

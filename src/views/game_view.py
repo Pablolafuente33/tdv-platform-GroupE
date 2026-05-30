@@ -4,10 +4,11 @@ import os
 import math
 import json
 
-from Entidades.Player import Player
-from Habitaciones import HABITACIONES, OPUESTO
-from EspadaAtaque import EspadaAtaque
+from Entidades.player import Player
+from habitaciones import HABITACIONES, OPUESTO
+from espadaAtaque import EspadaAtaque
 from constantes import *
+from arma import CorazonVida
 
 from views.game_over import GameOverView
 from views.pause import PauseView
@@ -62,6 +63,8 @@ class GameView(arcade.View):
         #Sonidos
         self.gameover_sound = arcade.load_sound(":resources:sounds/gameover1.wav")
         self.music_game = arcade.load_sound(os.path.join('assets', 'music', 'GameSound.mp3'), streaming=True)
+
+        self.lista_corazones = arcade.SpriteList()
 
     """
     ===================================================================================================================
@@ -132,7 +135,7 @@ class GameView(arcade.View):
         self.enemy_list = arcade.SpriteList()
 
         if datos_carga is not None:
-            from Entidades.Enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
+            from Entidades.enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
             for datos_enemigos in datos_carga["enemigos_vivos"]:
                 clase = datos_enemigos["clase_enemigo"]
                 if clase == "Enemigo1":
@@ -356,6 +359,9 @@ class GameView(arcade.View):
         self.lista_proyectiles.draw(filter = GL_NEAREST)
         self.lista_bombas.draw(filter=GL_NEAREST)   
 
+        #Corazones:
+        self.lista_corazones.draw(filter=GL_NEAREST)
+
         # HUD (cámara GUI fija)
         self.gui_camera.use()
         
@@ -421,11 +427,12 @@ class GameView(arcade.View):
                 hp_color
             )
             # Reflejo interior
-            arcade.draw_lrbt_rectangle_filled(
-                hud_x + 2, hud_x + fill_w - 2,
-                bar_top - 6, bar_top - 2,
-                (255, 200, 200, 60)
-            )
+            if fill_w > 4:
+                arcade.draw_lrbt_rectangle_filled(
+                    hud_x + 2, hud_x + fill_w - 2,
+                    bar_top - 6, bar_top - 2,
+                    (255, 200, 200, 60)
+                )
             
  
         # Texto de vida
@@ -600,7 +607,7 @@ class GameView(arcade.View):
         self.tiempo_jugado += delta_time
 
         jugador = self.player_sprite
-        #primeo de todo comprobamos que el personaje tiene vida:
+        #primero de todo comprobamos que el personaje tiene vida:
         if jugador is not None and jugador.health <= 0:
             if hasattr(self.window, "bgm_player") and self.window.bgm_player:
                 self.window.bgm_player.delete()
@@ -689,7 +696,7 @@ class GameView(arcade.View):
                     print("¡Un enemigo se salió del mapa por un glitch! Eliminándolo...")
                     enemigo.health = 0 
                 
-                #Comprobación colición con personaje
+                #Comprobación colisión con personaje
                 if arcade.check_for_collision(enemigo, self.player_sprite):
                     enemigo.atacar_jugador(self.player_sprite)
             
@@ -699,16 +706,29 @@ class GameView(arcade.View):
                 #Comprobar si el proyectil choca con un enemigo
                 if len(enemigos_alcanzados) > 0:
                     for enemigo in enemigos_alcanzados:
+                        if enemigo.health - proyectil.getDanno() <= 0:
+                            corazon = CorazonVida(enemigo.center_x, enemigo.center_y)
+                            self.lista_corazones.append(corazon)
                         enemigo.recibir_danno(proyectil.getDanno())
                     proyectil.kill()
 
                 chocado_muro = arcade.check_for_collision_with_list(proyectil, self.wall_list)
                 if len(chocado_muro) > 0:
                     #si choca contra una parede debe de desaparecer
-                    proyectil.kill() 
-            
-            for bomba in list(self.lista_bombas):   # list() porque kill() modifica la lista durante el bucle
-                bomba.on_update(delta_time, self.enemy_list)
+                    proyectil.kill()
+
+            # Bombas
+            for bomba in list(self.lista_bombas):
+                bomba.on_update(delta_time, self.enemy_list, self.lista_corazones)
+
+            # Corazones — colisión con jugador
+            for corazon in list(self.lista_corazones):
+                if arcade.check_for_collision(corazon, self.player_sprite):
+                    self.player_sprite.health = min(
+                        self.player_sprite.health + corazon.curacion,
+                        self.player_sprite.max_health
+                    )
+                    corazon.kill()
 
         self.__check_doors()
         
