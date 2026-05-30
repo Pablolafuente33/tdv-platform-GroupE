@@ -621,7 +621,7 @@ class GameView(arcade.View):
             arcade.play_sound(self.gameover_sound, volume = 0.5)
 
             #LAnzamos la pantalla de GameOver
-            self.window.show_view(GameOverView())
+            self.window.show_view(GameOverView(self))
 
             return # Para que no se haga nada más
         
@@ -806,14 +806,6 @@ class GameView(arcade.View):
     """
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ESCAPE:
-            # Volver a la pantalla de título
-            # Detener música de juego al salir
-            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
-                self.window.bgm_player.delete()
-                self.window.bgm_player = None
-            if hasattr(self.window, "current_bgm_track"):
-                self.window.current_bgm_track = None
-
             # Volver a la pantalla de título
             title_view = PauseView(self)
             self.window.show_view(title_view)

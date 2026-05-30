@@ -1,6 +1,7 @@
 import arcade
 import arcade.gui
 import os
+import sys
 
 class NewGameView(arcade.View):
     def __init__(self):
@@ -16,6 +17,7 @@ class NewGameView(arcade.View):
         self.normal_button = arcade.load_texture(os.path.join(botones,'boton_normal.png'))
         self.facil_button = arcade.load_texture(os.path.join(botones,'boton_facil.png'))
         self.back_button = arcade.load_texture(os.path.join(botones, 'boton_volver.png'))
+        self.tex_cerrar = arcade.load_texture(os.path.join(botones, 'boton_cerrar.png'))
         self.dificultad = "Normal"
         
         self.fuente = arcade.load_font(os.path.join('assets','fuente','BlackCastleMF.ttf' ))
@@ -219,6 +221,25 @@ class NewGameView(arcade.View):
             align_x=20,   
             align_y=-20   
         )
+
+        btn_salir = arcade.gui.UITextureButton(texture = self.tex_cerrar, width=100, height=50)
+        
+        @btn_salir.event("on_click")
+        def on_click_salir(event):
+            #Quitamos cualquier música que esté sonando
+            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                self.window.bgm_player.delete()
+            self.window.close() 
+            sys.exit()
+        
+        anchor.add(
+                child=btn_salir, 
+                anchor_x="right", 
+                anchor_y="top", 
+                align_x=-20, 
+                align_y=-20
+                )
+
 
         self.manager.add(anchor)
 

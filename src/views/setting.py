@@ -1,5 +1,6 @@
 import arcade
 import os
+import sys
 
 from views.title import TitleView
 
@@ -15,15 +16,26 @@ class SettingsView(arcade.View):
         self.tex_volumen = arcade.load_texture(os.path.join(botones, 'boton_volumen.png'))
         self.tex_pantalla = arcade.load_texture(os.path.join(botones, 'boton_pantalla_completa.png'))
         self.tex_volver = arcade.load_texture(os.path.join(botones, 'boton_volver.png'))
+        self.tex_cerrar = arcade.load_texture(os.path.join(botones, 'boton_cerrar.png'))
 
 
     def on_show_view(self):
+        self.window.default_camera.use()
+
+        # Reajustamos las proyecciones por si venimos de resoluciones modificadas
+        self.window.ctx.viewport = (0, 0, self.window.width, self.window.height)
+        self.window.ctx.projection_2d = (0, self.window.width, 0, self.window.height)
+
         self.manager.enable()
         self.setup_gui()
 
 
     def on_resize(self, width, height):
+        # Ajustamos obligatoriamente el Viewport físico de la GPU
+        self.window.ctx.viewport = (0, 0, int(width), int(height))
+        # Ajustamos la proyección matemática 2D de Arcade
         self.window.ctx.projection_2d = (0, width, 0, height)
+        # Regeneramos los menús para que calculen sus nuevos centros
         self.setup_gui()
 
     def setup_gui(self):
@@ -84,7 +96,16 @@ class SettingsView(arcade.View):
         # --- AGREGAR AL CONTENEDOR PRINCIPAL ---
         v_box.add(h_box_volume)
         v_box.add(fullscreen_btn)
-
+        btn_salir = arcade.gui.UITextureButton(texture = self.tex_cerrar, width=100, height=50)
+        
+        @btn_salir.event("on_click")
+        def on_click_salir(event):
+            #Quitamos cualquier música que esté sonando
+            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                self.window.bgm_player.delete()
+            self.window.close() 
+            sys.exit()
+        
         anchor.add(
             child=v_box, 
             anchor_x="center", 

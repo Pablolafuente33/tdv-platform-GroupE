@@ -1,6 +1,6 @@
 import arcade
 import os
-
+import sys
 
 class PauseView(arcade.View):
     def __init__(self, game_view):
@@ -17,8 +17,10 @@ class PauseView(arcade.View):
         self.tex_reiniciar = arcade.load_texture(os.path.join(botones, 'boton_reiniciar.png')) 
         self.tex_volumen = arcade.load_texture(os.path.join(botones, 'boton_volumen.png'))
         self.guardar_partida = arcade.load_texture(os.path.join(botones, 'boton_guardar_partida.png'))
+        self.menu = arcade.load_texture(os.path.join(botones, 'boton_menu.png'))
         self.back_button= arcade.load_texture(os.path.join(botones, 'boton_volver.png'))
-
+        self.tex_cerrar= arcade.load_texture(os.path.join(botones, 'boton_cerrar.png'))
+    
     def on_show_view(self):
         self.window.ctx.viewport = (0, 0, self.window.width, self.window.height)
         self.window.ctx.projection_2d = (0, self.window.width, 0, self.window.height)
@@ -57,24 +59,27 @@ class PauseView(arcade.View):
             texture_hovered=self.back_button,
             text="",
             width=100, 
-            height=60
-        )
+            height=60)
         retry_btn = arcade.gui.UITextureButton(
             texture=self.tex_reiniciar, 
-            width=350, 
+            width=375, 
             height=100)
         guardar_btn = arcade.gui.UITextureButton(
             texture = self.guardar_partida,
-            width=300, 
-            height=100
-        )
+            width=325, 
+            height=100)
+        menu_btn = arcade.gui.UITextureButton(
+            texture = self.menu,
+            width=275, 
+            height=115)
 
         # Los añadimos al contenedor vertical
         v_box.add(h_box_volume)
         v_box.add(resume_btn)
         v_box.add(retry_btn)
         v_box.add(guardar_btn)
-
+        v_box.add(menu_btn)
+        
         # --- EVENTOS ---
         
         @self.volume_slider.event("on_change")
@@ -94,16 +99,33 @@ class PauseView(arcade.View):
         @retry_btn.event("on_click")
         def on_click_retry(event):
             self.manager.disable()
-            # Creamos una partida completamente nueva desde cero
 
+            from habitaciones import HABITACIONES
+            for sala in HABITACIONES:
+                sala.nivel_pasado = False
+
+                from views.game_view import GameView
+                juego_reiniciado = GameView()
+
+                juego_reiniciado.nombre_partida = self.game_view.nombre_partida
+                juego_reiniciado.dificultad = self.game_view.dificultad
+                juego_reiniciado.tiempo_jugado = 0.0
+
+                juego_reiniciado.setup(room_id=0)
+                juego_reiniciado.guardar_partida()
+                self.window.show_view(juego_reiniciado)
+
+        @guardar_btn.event("on_click")
+        def on_click_guardar(event):
+            self.game_view.guardar_partida()
+        
+        @menu_btn.event("on_click")
+        def on_click_menu(event):
+            self.manager.disable()
+            
             from views.title import TitleView
             nuevo_juego = TitleView()
             self.window.show_view(nuevo_juego)
-        
-        @guardar_btn.event("on_click")
-        def on_click_guardar(event):
-            self.manager.disable()
-            self.game_view.guardar_partida()
 
         # Centramos todo el panel en pantalla
         anchor.add(
@@ -121,6 +143,25 @@ class PauseView(arcade.View):
             align_y=-40   
         )
 
+        # Para cerrar el juego desde la pausa
+        btn_salir = arcade.gui.UITextureButton(texture = self.tex_cerrar, width=100, height=60)
+        
+        @btn_salir.event("on_click")
+        def on_click_salir(event):
+            #Quitamos cualquier música que esté sonando
+            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                self.window.bgm_player.delete()
+            self.window.close() 
+            sys.exit()
+
+        anchor.add(
+                child=btn_salir, 
+                anchor_x="right", 
+                anchor_y="top", 
+                align_x=-20, 
+                align_y=-20
+        )
+
         self.manager.add(anchor)
 
     def on_draw(self):
@@ -133,6 +174,7 @@ class PauseView(arcade.View):
         
         # Dibujamos los botones del UIManager en el nuevo centro calculado
         self.manager.draw()
+
     #Si le damos a escape también volvemos a donde estábamos 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ESCAPE:

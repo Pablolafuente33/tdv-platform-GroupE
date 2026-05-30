@@ -2,6 +2,7 @@ import arcade
 import arcade.gui
 import os
 import json
+import sys
 
 class ChargeGameview(arcade.View):
     def __init__(self):
@@ -15,6 +16,7 @@ class ChargeGameview(arcade.View):
         self.tex_jugar = arcade.load_texture(os.path.join(botones, 'boton_jugar.png'))
         self.tex_volver = arcade.load_texture(os.path.join(botones, 'boton_volver.png'))
         self.tex_vacio = arcade.load_texture(os.path.join(botones, 'boton.png'))
+        self.tex_cerrar = arcade.load_texture(os.path.join(botones, 'boton_cerrar.png'))
 
         self.fuente = arcade.load_font(os.path.join('assets','fuente','BlackCastleMF.ttf' ))
     def on_show_view(self):
@@ -85,7 +87,7 @@ class ChargeGameview(arcade.View):
                 width=400,
                 height=35,
                 text_color=arcade.color.RED,
-                font_size=16,
+                font_size=33,
                 font_name = "BlackCastleMF",
             )
             v_box.add(aviso_vacio)
@@ -107,13 +109,23 @@ class ChargeGameview(arcade.View):
         def on_click_volver(event):
             from views.title import TitleView
             self.window.show_view(TitleView())
-            
+        
         anchor.add(child=btn_volver, 
                    anchor_x="left", 
                    anchor_y="top", 
                    align_x=20, 
                    align_y=-20)
         
+        btn_salir = arcade.gui.UITextureButton(texture = self.tex_cerrar, width=100, height=50)
+        
+        @btn_salir.event("on_click")
+        def on_click_salir(event):
+            #Quitamos cualquier música que esté sonando
+            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                self.window.bgm_player.delete()
+            self.window.close() 
+            sys.exit()
+
         self.manager.add(anchor)
 
     def cargar_y_lanzar_partida(self, archivo_json):

@@ -22,6 +22,7 @@ class TitleView(arcade.View):
         self.load_music = arcade.load_sound(os.path.join('assets','music','InitSound.mp3'), streaming= True)
 
     def on_show_view(self):
+        self.window.default_camera.use()
         self.manager.enable()
         self.setup_gui()
         

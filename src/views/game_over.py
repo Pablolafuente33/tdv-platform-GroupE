@@ -1,10 +1,11 @@
 import arcade
 import os
-
+import sys
 
 class GameOverView(arcade.View):
-    def __init__(self):
+    def __init__(self, game_view):
         super().__init__()
+        self.game_view = game_view
         self.manager = arcade.gui.UIManager()
 
         fondos = os.path.join('assets', 'fondos') #Cambiar a otro o lo que querais.
@@ -12,7 +13,7 @@ class GameOverView(arcade.View):
         self.background = arcade.load_texture(os.path.join(fondos, 'game_over.png'))
         #Lo cambiamos a un nuevo boton
         self.tex_reiniciar = arcade.load_texture(os.path.join(botones, 'boton_reiniciar.png'))
-        self.tex_salir = arcade.load_texture(os.path.join(botones, 'boton_pantalla_completa.png'))
+        self.tex_salir = arcade.load_texture(os.path.join(botones, 'boton_cerrar.png'))
         self.tex_menu = arcade.load_texture(os.path.join(botones, 'boton_menu.png'))
     
     def on_show_view(self):
@@ -29,44 +30,71 @@ class GameOverView(arcade.View):
         v_box = arcade.gui.UIBoxLayout(space_between = 5)
 
         # Botón REINICIAR PARTIDA
-        retry_button = arcade.gui.UITextureButton(
+        retry_btn = arcade.gui.UITextureButton(
             texture=self.tex_reiniciar,
             width=300,
             height=100
         )
         
         # Botón CERRAR JUEGO
-        exit_button = arcade.gui.UITextureButton(
+        btn_salir = arcade.gui.UITextureButton(
             texture=self.tex_salir,
-            width=300,
-            height=150
+            width=100,
+            height=50
         )
 
-        menu_button = arcade.gui.UITextureButton(
+        menu_btn = arcade.gui.UITextureButton(
             texture=self.tex_menu,
             width=300,
             height=100
         )
 
-        v_box.add(retry_button)
-        v_box.add(menu_button)
-        v_box.add(exit_button)
-
-
+        v_box.add(retry_btn)
+        v_box.add(menu_btn)
+        
         # --- EVENTOS DE LOS BOTONES ---
-        @retry_button.event("on_click")
+        @retry_btn.event("on_click")
         def on_click_retry(event):
             self.manager.disable()
-            from views.game_view import GameView
-            # Creamos una vista de juego totalmente nueva desde cero
-            game_view = GameView()
-            game_view.setup()
-            self.window.show_view(game_view)
 
-        @exit_button.event("on_click")
-        def on_click_exit(event):
-            # Finalizamos el juego
-            self.window.close()
+            from habitaciones import HABITACIONES
+            for sala in HABITACIONES:
+                sala.nivel_pasado = False
+
+                from views.game_view import GameView
+                juego_reiniciado = GameView()
+
+                juego_reiniciado.nombre_partida = self.game_view.nombre_partida
+                juego_reiniciado.dificultad = self.game_view.dificultad
+                juego_reiniciado.tiempo_jugado = 0.0
+
+                juego_reiniciado.setup(room_id=0)
+                juego_reiniciado.guardar_partida()
+                self.window.show_view(juego_reiniciado)
+
+        @btn_salir.event("on_click")
+        def on_click_salir(event):
+            #Quitamos cualquier música que esté sonando
+            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                self.window.bgm_player.delete()
+            self.window.close() 
+            sys.exit()
+        
+        @menu_btn.event("on_click")
+        def on_click_menu(event):
+            self.manager.disable()
+            
+            from views.title import TitleView
+            nuevo_juego = TitleView()
+            self.window.show_view(nuevo_juego)
+
+        anchor.add(
+                child=btn_salir, 
+                anchor_x="right", 
+                anchor_y="top", 
+                align_x=-20, 
+                align_y=-20
+        )
 
         anchor.add(
             child=v_box, 
