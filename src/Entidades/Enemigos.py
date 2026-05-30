@@ -231,7 +231,7 @@ class Boss1(Enemigo):
             tamanno_sprite= (64, 64),
             columns= 6,
             count=6,
-            duracion= 150
+            duracion= 250
         )
 
 
@@ -279,7 +279,7 @@ class Boss2(Enemigo):
             tamanno_sprite= (64, 64),
             columns= 6,
             count=6,
-            duracion= 150
+            duracion= 200
         )
 
 
@@ -326,7 +326,7 @@ class Boss3(Enemigo):
             tamanno_sprite= (64, 64),
             columns= 6,
             count=6,
-            duracion= 150
+            duracion= 200
         )
 
 

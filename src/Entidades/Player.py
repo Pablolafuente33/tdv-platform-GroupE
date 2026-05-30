@@ -43,15 +43,7 @@ class Player(arcade.TextureAnimationSprite):
         self.health = 100
         self.max_health = 100
         #Para los objetos
-        self.inventario = []
-        for cls in [Espada, Lanza, Arco, LanzaBombas]:
-            try:
-                self.inventario.append(cls())
-                print(f"OK: {cls.__name__}")
-            except Exception as e:
-                print(f"ERROR en {cls.__name__}: {e}")
-                self.inventario.append(None)
-        self.inventario.append(None)
+        self.inventario = [Espada(), Lanza(), LanzaBoomerang(), LanzaBombas(), None]
         self.equipped_index = 0
         self.facing_direction = 0
     

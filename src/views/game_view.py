@@ -5,7 +5,7 @@ import math
 import json
 
 from Entidades.Player import Player
-from habitaciones import HABITACIONES, OPUESTO
+from Habitaciones import HABITACIONES, OPUESTO
 from EspadaAtaque import EspadaAtaque
 from constantes import *
 
@@ -132,7 +132,7 @@ class GameView(arcade.View):
         self.enemy_list = arcade.SpriteList()
 
         if datos_carga is not None:
-            from Entidades.enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
+            from Entidades.Enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
             for datos_enemigos in datos_carga["enemigos_vivos"]:
                 clase = datos_enemigos["clase_enemigo"]
                 if clase == "Enemigo1":
@@ -508,9 +508,10 @@ class GameView(arcade.View):
                 # 1. Dibujamos la textura del objeto normal
                 arcade.draw_texture_rect(
                     item.texture,
-                    arcade.LRBT(izq, der, aba, arr)
-                )
-                
+                    arcade.LRBT(izq, der, aba, arr),
+                    pixelated=True
+                    )
+
                 # 2. NUEVO: Filtro de Cooldown
                 # Comprobamos si el objeto tiene las variables de cooldown 
                 if hasattr(item, 'cooldown') and hasattr(item, 'cooldown_max'):

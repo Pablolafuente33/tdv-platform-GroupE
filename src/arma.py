@@ -232,31 +232,6 @@ class Proyectil(arcade.Sprite):
         if avance >= self.rango:
             self.kill()
 
-class Flecha(Proyectil):
-    def __init__(self, start_x, start_y, direccion):
-        super().__init__(
-            velocidad = 10, 
-            rango     = 400, 
-            danno     = 15, 
-            imagen    = os.path.join('assets','objects','lanza.png'), # Asegúrate de tener este PNG
-            escala    = 0.1
-        )
-        self.center_x = start_x
-        self.center_y = start_y
-
-        # Direcciones: 0 (Der), 1 (Izq), 2 (Abajo), 3 (Arriba)dw
-        if direccion == 0:
-            self.change_x = self.velocidad
-            self.angle = 0
-        elif direccion == 1:
-            self.change_x = -self.velocidad
-            self.angle = 180
-        elif direccion == 2:
-            self.change_y = -self.velocidad
-            self.angle = 270
-        elif direccion == 3:
-            self.change_y = self.velocidad
-            self.angle = 90
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Esto es lo que va a lanzar el proyectil
@@ -289,24 +264,6 @@ class ArmaDistancia(arcade.Sprite):
 
     def draw_ataque(self, player_sprite):
         pass
-
-class Arco(ArmaDistancia):
-    def __init__(self):
-        super().__init__(
-            cooldown = 1.0, 
-            imagen   = os.path.join('assets','objects','lanza.png'), 
-            escala   = 0.4,
-            nombre   = "Arco"
-        )
-
-    def disparar(self, player_sprite):
-        # Creamos una flecha en la posición del jugador apuntando hacia donde mira
-        nueva_flecha = Flecha(
-            start_x = player_sprite.center_x,
-            start_y = player_sprite.center_y,
-            direccion = player_sprite.facing_direction
-        )
-        return nueva_flecha
     
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # BOMBA
@@ -375,7 +332,7 @@ class Bomba(arcade.Sprite):
 class LanzaBombas(ArmaDistancia):
     def __init__(self):
         super().__init__(
-            cooldown = 3.0,
+            cooldown = 2.0,
             imagen   = os.path.join('assets', 'objects', 'lanza.png'),
             escala   = 0.4,
             nombre   = "Bomba"
@@ -394,7 +351,7 @@ class LanzaBombas(ArmaDistancia):
         return Bomba(
             start_x      = player_sprite.center_x,
             start_y      = player_sprite.center_y,
-            radio_danno  = 80,
+            radio_danno  = 40,
             danno        = 60,
             tiempo_mecha = 1.5,
             escala       = 2.0
@@ -404,3 +361,79 @@ class PocionCuración(arcade.Sprite):
         imagen = os.path.join('assets', 'objects', 'pocion_vida.png')
         super().__init__(imagen, scale = 1.5)
         self.curación = 50
+
+        # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# BOOMERANG
+
+class Boomerang(Proyectil):
+    NUM_FRAMES = 2
+    FRAME_W    = 16
+    FRAME_H    = 16
+
+    def __init__(self, start_x, start_y, direccion):
+        super().__init__(
+            velocidad = 7,
+            rango     = 300,
+            danno     = 25,
+            imagen    = os.path.join('assets', 'graphics', 'Boomerang.png'),
+            escala    = 3
+        )
+        self.center_x = start_x
+        self.center_y = start_y
+        self.direccion = direccion
+
+        # Cargamos los frames de animación
+        sheet = arcade.load_spritesheet(
+            os.path.join('assets', 'graphics', 'Boomerang.png')
+        )
+        self._frames = sheet.get_texture_grid(
+            size=(self.FRAME_W, self.FRAME_H),
+            columns=self.NUM_FRAMES,
+            count=self.NUM_FRAMES
+        )
+        self.texture = self._frames[0]
+        self._anim_timer = 0.0
+
+        # Dirección de movimiento
+        if direccion == 0:
+            self.change_x = self.velocidad
+        elif direccion == 1:
+            self.change_x = -self.velocidad
+        elif direccion == 2:
+            self.change_y = -self.velocidad
+        elif direccion == 3:
+            self.change_y = self.velocidad
+
+    def update(self, delta_time):
+        # Movimiento y comprobación de rango (heredado de Proyectil)
+        super().update(delta_time)
+
+        # Animación: alterna entre frame 0 y 1 cada 0.1s
+        self._anim_timer += delta_time
+        self.texture = self._frames[int(self._anim_timer / 0.1) % self.NUM_FRAMES]
+
+
+class LanzaBoomerang(ArmaDistancia):
+    def __init__(self):
+        super().__init__(
+            cooldown = 1,
+            imagen   = os.path.join('assets', 'objects', 'lanza.png'),  # temporal
+            escala   = 0.4,
+            nombre   = "Boomerang"
+        )
+        sheet = arcade.load_spritesheet(
+            os.path.join('assets', 'graphics', 'Boomerang.png')
+        )
+        frames = sheet.get_texture_grid(
+            size=(16, 16),
+            columns=2,
+            count=2
+        )
+        self.texture = frames[0]
+
+    def disparar(self, player_sprite):
+        return Boomerang(
+            start_x   = player_sprite.center_x,
+            start_y   = player_sprite.center_y,
+            direccion = player_sprite.facing_direction
+        )
