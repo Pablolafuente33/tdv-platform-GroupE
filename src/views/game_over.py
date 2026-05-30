@@ -26,13 +26,13 @@ class GameOverView(arcade.View):
         self.manager.clear()
         
         anchor = arcade.gui.UIAnchorLayout()
-        v_box = arcade.gui.UIBoxLayout(space_between = 10)
+        v_box = arcade.gui.UIBoxLayout(space_between = 5)
 
         # Botón REINICIAR PARTIDA
         retry_button = arcade.gui.UITextureButton(
             texture=self.tex_reiniciar,
             width=300,
-            height=150
+            height=100
         )
         
         # Botón CERRAR JUEGO
@@ -45,7 +45,7 @@ class GameOverView(arcade.View):
         menu_button = arcade.gui.UITextureButton(
             texture=self.tex_menu,
             width=300,
-            height=150
+            height=100
         )
 
         v_box.add(retry_button)

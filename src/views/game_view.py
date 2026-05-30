@@ -130,15 +130,17 @@ class GameView(arcade.View):
         self.enemy_list = arcade.SpriteList()
 
         if datos_carga is not None:
-            from Entidades.Enemigos import EsqueletoEnemigo, DuendeEnemigo, CocodriloEnemigo
+            from Entidades.Enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
             for datos_enemigos in datos_carga["enemigos_vivos"]:
                 clase = datos_enemigos["clase_enemigo"]
-                if clase == "EsqueletoEnemigo":
-                    nuevo_enemigo = EsqueletoEnemigo()
-                elif clase == "DuendeEnemigo":
-                    nuevo_enemigo = DuendeEnemigo()
-                elif clase == "CocodriloEnemigo":
-                    nuevo_enemigo = CocodriloEnemigo()
+                if clase == "Enemigo1":
+                    nuevo_enemigo = Enemigo1()
+                elif clase == "Enemigo2":
+                    nuevo_enemigo = Enemigo2()
+                elif clase == "Enemigo3":
+                    nuevo_enemigo = Enemigo3()
+                elif clase == "Boss1":
+                    nuevo_enemigo = Boss1()
                 else:
                     continue
 

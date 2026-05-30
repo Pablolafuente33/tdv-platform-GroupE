@@ -17,6 +17,9 @@ class NewGameView(arcade.View):
         self.facil_button = arcade.load_texture(os.path.join(botones,'boton_facil.png'))
         self.back_button = arcade.load_texture(os.path.join(botones, 'boton_volver.png'))
         self.dificultad = 'Normal'
+        
+        self.fuente = arcade.load_font(os.path.join('assets','fuente','BlackCastleMF.ttf' ))
+
         # Guardaremos el cuadro de texto en una variable de clase para leerlo luego
         self.input_nombre = None
 
@@ -39,7 +42,8 @@ class NewGameView(arcade.View):
             width=550,
             height=35,
             text_color=arcade.color.ORANGE_PEEL,
-            font_size = 25, 
+            font_size=25,
+            font_name="BlackCastleMF"
         )
         v_box.add(label)
 
@@ -50,6 +54,7 @@ class NewGameView(arcade.View):
             height= 40,
             text_color=arcade.color.ORANGE_PEEL,
             font_size = 22,
+            font_name="BlackCastleMF"
         )
         
         v_box.add(self.input_nombre)
@@ -63,6 +68,7 @@ class NewGameView(arcade.View):
             height = 28,
             text_color = arcade.color.ORANGE_PEEL,
             font_size = 25,
+            font_name="BlackCastleMF"
         )
         v_box.add(dificultad_label)
 
@@ -158,6 +164,7 @@ class NewGameView(arcade.View):
                 #Lanzamos un mensaje de aviso
                 label.text = "¡ESE NOMBRE DE PARTIDA YA EXISTE! Elige otro:"
                 label.text_color = arcade.color.RED
+                label.font_name = "BlackCastleMF"
                 return
             
             if os.path.exists("saves"):

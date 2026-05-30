@@ -14,8 +14,9 @@ class ChargeGameview(arcade.View):
         self.background = arcade.load_texture(os.path.join(fondos, 'cargar_partidas.png'))
         self.tex_jugar = arcade.load_texture(os.path.join(botones, 'boton_jugar.png'))
         self.tex_volver = arcade.load_texture(os.path.join(botones, 'boton_volver.png'))
-        
+        self.tex_vacio = arcade.load_texture(os.path.join(botones, 'boton.png'))
 
+        self.fuente = arcade.load_font(os.path.join('assets','fuente','BlackCastleMF.ttf' ))
     def on_show_view(self):
         self.manager.enable()
         self.setup_gui()
@@ -38,7 +39,7 @@ class ChargeGameview(arcade.View):
             height=40,
             text_color=arcade.color.ORANGE_PEEL,
             font_size=25,
-            font_name="Georgia"
+            font_name="BlackCastleMF"
         )
         v_box.add(titulo)
         
@@ -59,10 +60,28 @@ class ChargeGameview(arcade.View):
                 
                 # Creamos un botón plano de texto para seleccionar la partida
                 # Puedes usar UITextureButton si prefieres meterle una imagen de pergamino/madera detrás
-                btn_partida = arcade.gui.UIFlatButton(
+                btn_partida = arcade.gui.UITextureButton(
                     text=nombre_partida.upper(),
+                    texture = self.tex_vacio,
                     width=300,
-                    height=50
+                    height=100,
+                    style = {
+                        "normal":{
+                        "font_name" : "BlackCastleMF",
+                        "font_size" : 20,
+                        "font_color" : (212, 175, 55)
+                        }, 
+                        "hover":{
+                        "font_name" : "BlackCastleMF",
+                        "font_size" : 20,
+                        "font_color" : (212, 175, 55)
+                        },
+                        "press":{
+                        "font_name" : "BlackCastleMF",
+                        "font_size" : 20,
+                        "font_color" : (212, 175, 55)
+                        } 
+                    }
                 )
                 
                 # Pasamos el nombre del archivo al evento usando un truco de clausura de Python (archivo=archivo)
@@ -80,6 +99,7 @@ class ChargeGameview(arcade.View):
                 height=35,
                 text_color=arcade.color.RED,
                 font_size=16,
+                font_name = "BlackCastleMF",
             )
             lista_partidas_box.add(aviso_vacio)
             
@@ -93,7 +113,6 @@ class ChargeGameview(arcade.View):
         
         btn_volver = arcade.gui.UITextureButton(
             texture=self.tex_volver,
-            text="",
             width=120,
             height=60
         )

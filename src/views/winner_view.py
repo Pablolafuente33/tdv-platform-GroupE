@@ -24,6 +24,8 @@ class VictoryView(arcade.View):
         
         self.music = arcade.load_sound(os.path.join('assets', 'music', 'VictorySound.mp3'),
                                        streaming= True)
+        self.fuente = arcade.load_font(os.path.join('assets','fuente','BlackCastleMF.ttf' ))
+
 
     def on_show_view(self):
         self.manager.enable()
@@ -61,6 +63,7 @@ class VictoryView(arcade.View):
                 height=140,
                 text_color=arcade.color.ORANGE_PEEL,
                 font_size=18,
+                font_name="BlackCastleMF"
             )
             v_box.add(cuadro_stats)
 
@@ -97,7 +100,7 @@ class VictoryView(arcade.View):
                 child=v_box, 
                 anchor_x="center",
                 anchor_y="center", 
-                align_y=-60
+                align_y=-100
             )
             
             anchor.add(
