@@ -308,3 +308,94 @@ class Arco(ArmaDistancia):
         )
         return nueva_flecha
     
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# BOMBA
+
+class Bomba(arcade.Sprite):
+    FASE_ESPERANDO = "esperando"
+    FASE_DETONANDO = "detonando"
+    NUM_FRAMES    = 12
+    FRAME_W       = 64
+    FRAME_H       = 64
+    DUR_EXPLOSION = 0.6
+
+    def __init__(self, start_x, start_y, radio_danno=80, danno=60,
+                 tiempo_mecha=1.5, escala=1.0):
+        super().__init__(scale=escala)
+
+        sheet = arcade.load_spritesheet(
+            os.path.join('assets', 'graphics', 'Bomba.png')
+        )
+        self._frames = sheet.get_texture_grid(
+            size=(self.FRAME_W, self.FRAME_H),
+            columns=self.NUM_FRAMES,
+            count=self.NUM_FRAMES
+        )
+        self.texture = self._frames[0]
+
+        self.center_x     = start_x
+        self.center_y     = start_y
+        self.radio_danno  = radio_danno
+        self.danno        = danno
+        self.tiempo_mecha = tiempo_mecha
+        self._timer          = 0.0
+        self._fase           = self.FASE_ESPERANDO
+        self._danno_aplicado = False
+
+    def on_update(self, delta_time, enemy_list=None):
+        self._timer += delta_time
+
+        if self._fase == self.FASE_ESPERANDO:
+            # Parpadeo de la mecha entre frame 0 y 1
+            self.texture = self._frames[int(self._timer / 0.3) % 2]
+
+            if self._timer >= self.tiempo_mecha:
+                self._fase  = self.FASE_DETONANDO
+                self._timer = 0.0
+
+        elif self._fase == self.FASE_DETONANDO:
+            frames_explosion = self._frames[2:]
+            progreso = self._timer / self.DUR_EXPLOSION
+            idx = min(int(progreso * len(frames_explosion)), len(frames_explosion) - 1)
+            self.texture = frames_explosion[idx]
+
+            if not self._danno_aplicado and enemy_list is not None:
+                for enemy in enemy_list:
+                    dx = enemy.center_x - self.center_x
+                    dy = enemy.center_y - self.center_y
+                    dist = math.sqrt(dx**2 + dy**2) - (enemy.width / 2)
+                    if dist <= self.radio_danno:
+                        enemy.recibir_danno(self.danno)
+                self._danno_aplicado = True
+
+            if self._timer >= self.DUR_EXPLOSION:
+                self.kill()
+
+
+class LanzaBombas(ArmaDistancia):
+    def __init__(self):
+        super().__init__(
+            cooldown = 3.0,
+            imagen   = os.path.join('assets', 'objects', 'lanza.png'),
+            escala   = 0.4,
+            nombre   = "Bomba"
+        )
+        sheet = arcade.load_spritesheet(
+            os.path.join('assets', 'graphics', 'Bomba.png')
+        )
+        frames = sheet.get_texture_grid(
+            size=(64, 64),
+            columns=12,
+            count=12
+        )
+        self.texture = frames[0]
+
+    def disparar(self, player_sprite):
+        return Bomba(
+            start_x      = player_sprite.center_x,
+            start_y      = player_sprite.center_y,
+            radio_danno  = 80,
+            danno        = 60,
+            tiempo_mecha = 1.5,
+            escala       = 2.0
+        )

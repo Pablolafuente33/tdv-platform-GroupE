@@ -12,6 +12,7 @@ from constantes import *
 from views.game_over import GameOverView
 from views.pause import PauseView
 from views.winner_view import VictoryView
+from arma import Bomba
 #Para mantener el aspecto retro
 from pyglet.gl import GL_NEAREST
 
@@ -35,6 +36,7 @@ class GameView(arcade.View):
         self.scene = None
 
         self.lista_proyectiles = arcade.SpriteList()
+        self.lista_bombas = arcade.SpriteList()
 
         # Motor de física
         self.physics_engine = None
@@ -348,6 +350,8 @@ class GameView(arcade.View):
 
         #Dibujar los proyectiles    
         self.lista_proyectiles.draw(filter = GL_NEAREST)
+        self.lista_bombas.draw(filter=GL_NEAREST)   
+
         # HUD (cámara GUI fija)
         self.gui_camera.use()
         
@@ -418,6 +422,7 @@ class GameView(arcade.View):
                 bar_top - 6, bar_top - 2,
                 (255, 200, 200, 60)
             )
+            
  
         # Texto de vida
         arcade.draw_text(
@@ -696,6 +701,9 @@ class GameView(arcade.View):
                 if len(chocado_muro) > 0:
                     #si choca contra una parede debe de desaparecer
                     proyectil.kill() 
+            
+            for bomba in list(self.lista_bombas):   # list() porque kill() modifica la lista durante el bucle
+                bomba.on_update(delta_time, self.enemy_list)
 
         self.__check_doors()
         
@@ -786,10 +794,13 @@ class GameView(arcade.View):
         elif key == arcade.key.SPACE:
             arma_activa = self.player_sprite.objeto_equipado()
             if arma_activa is not None:
-                resultado = arma_activa.use(self.enemy_list,self.player_sprite)
-                #Si nos devuelve un proyectil
+                resultado = arma_activa.use(self.enemy_list, self.player_sprite)
                 if resultado is not None:
-                    self.lista_proyectiles.append(resultado)
+                    # Distinguimos si es bomba o proyectil normal
+                    if isinstance(resultado, Bomba):
+                        self.lista_bombas.append(resultado)        
+                    else:
+                        self.lista_proyectiles.append(resultado)
 
         #Cambio de objeto de inventario con los números
         if key == arcade.key.KEY_1: 
