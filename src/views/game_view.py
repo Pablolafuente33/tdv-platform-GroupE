@@ -81,6 +81,7 @@ class GameView(arcade.View):
     def setup(self, room_id: int = 0, enter_from: str = None, datos_carga: dict = None):
          #Para la inicialización veremos en que sala está y de que sala viene
         if datos_carga is not None:
+            self.mostrar_controles = False
             self.nombre_partida = datos_carga["nombre_partida"]
             self.current_room_id = datos_carga["sala_actual"]
             self.tiempo_jugado = datos_carga["tiempo_jugado_segundos"]
@@ -835,7 +836,7 @@ class GameView(arcade.View):
         for espada in self.scene["espada"]:
             espada.update(delta_time)
 
-    
+
     def guardar_partida(self,):
         """Recopila todo el estado actual del juego y lo guarda en la carpeta de saves"""
         #Creamos la carpeta si no está:
@@ -905,7 +906,6 @@ class GameView(arcade.View):
                 self.mostrar_controles = False
             return  # bloquea cualquier otra tecla mientras se muestra
 
-
         #Teclas para mover el personaje
         if key in [arcade.key.A]:
             self.left_pressed = True
@@ -947,9 +947,6 @@ class GameView(arcade.View):
             self.player_sprite.objeto_siguiente()
         elif key == arcade.key.LEFT:
             self.player_sprite.objeto_anterior()
-
-    
-
 
         #Calculamos la nueva posición
         self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)

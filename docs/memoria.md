@@ -142,7 +142,7 @@ Es muy parecida al resto, simplemente hemos añadido botones para volver a empez
 #### Código
 Hereda las funcionalidades que hemos visto en el resto de casos, no obstante tenemos una pequeña modificación. A la hora de volver al menú principal hemos tenido que realizar un barrido anteriormente para que, como hemos perdido la partida y va a seguir guardada en nuestro sistema gestor de partidas, reinstaurar a los valores por defecto como en el caso de __HABITACIONES__, qeu ya hablaremos más adelante, guarda las salas del juego por lo que deben de estar todas como "no superadas". Si no hubiesemos realizado este control a la hora de ir acvanando niveles no aparecerían enemigos hasta el momento en el que fuimos derrotados.
 
-### Winner_view
+### Winner_view (Pantalla de victoria)
 Aquí es donde se acaba la aventura, es la pestaña más simple de todas ya que únicamente dispone de unas estadísticas que plasman el tiempo que se ha tardado en completar la hazaña, así como la dificultad en la que ha sido superada y el nombre que se puso a la hora de crear la partida.
 Por otro lado, también se da la opción de volver a la pantalla del menú para b¡volver a crear una nueva aventura y superarse a uno mismo.
 
@@ -150,6 +150,21 @@ Por otro lado, también se da la opción de volver a la pantalla del menú para 
 A la hora de entrar en esta pantalla inmediatamente eliminamos el archivo JSON de la partida en la que nos encontramos para liberar recursos y que, si ya hemos completado la partida, no hay nada más que hacer.
 A la hora de volver al menú principal cabe destacar qeu realizamos el mismo barrido en las salas para marcarlas como no completadas ya que, al ser un atributo que se guarda en memoria RAM y es global a la hora de crear las partidas, a la hora de crear una nueva partida esta tomará dichas salas con valor ``selfnivel_pasado = True`` y nos abrirá de nuevo esta misma vista. 
 
+### Game_View (Juego)
+Esta es la base fundamental del juego, donde se comprueba toda la lógica y conecta todos los elementos del mismo. Por ello debemos de darle una importancia mayor y debemos de explicarla un poco más a fondo para entender al completo nuestro proyecto.
+
+#### Constructor
+En el constructor inicializa el estado de los elementos que se van a usar posteriormente. 
+Aquí se gestiona los booleanos que determinan la entrada por teclado, inicializamos los `arcade.SpriteList` pertienentes para guardar los obstáculos, enemigos, proyectiles ... que nos serán utiles a la hora del renderizado de elementos. También se prepara el motor de colisiones del juego así como la slaa en la que nos encontramos y las cámaras que vamos a usar para la partida.
+Tambien guardamos multimedia que vamos a usar a lo largo de la experiencia.
+Finalemente, como ya hemos nombrado anteriormente, instanciamos el nombre de la partida y la dificultad que seleccionamos además de qu también guardaremos el tiempo que llevamos jugando.
+
+#### Setup
+A la hora de crear un juego debemos de llamar instantáneamente a esta función, ya que es la que da todos los valores de inicio, además de cuando cambiamos de habitación.
+En ella debamos de diferenciar dos casos, estamos juagando a partir de una partida guardad o no.
+En caso de que obtengamos dichos datos guardados lo único que haremos es dar dichos valores a los atributos de la clase, como la vida en la que se encontraba el jugador, los enemigos que había en la sala en el momento del guardado así como sus respectivas posiciones en la sala.
+Si estamos en un flujo normal o nos estamos cambiando de sala iniciamos dicha habitación cargando su tilemap correspondiente, generando las colisiones con los muros y posicionamos al personaje en su luga de aparición en la sala gracias a la función privada ``__spawn_pos()``.
+Finalmente inicializamos los motores de físicas individuales para cada uno de los caracteres (enemigos y jugador), además de configurar las cámaras aplicando un bloqueo remporal para suavizar esta transición entre salas e inicializamos la música que hemos elegido par jugar.
 ## Elementos del juego
 
   
