@@ -41,7 +41,7 @@ class GameView(arcade.View):
         self.lista_bombas = arcade.SpriteList()
         self.recompensas = {
             2: LanzaBoomerang(),
-            5: LanzaBombas(),
+            6: LanzaBombas(),
         }
 
         # Motor de física
