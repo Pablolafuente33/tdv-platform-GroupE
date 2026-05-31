@@ -68,7 +68,23 @@ Esta vista es sin duda la que más componentes gráficos dispone, no obstante, a
 Tenemos que mencionar que, para la creación de esta vista, debemos de atribuir en el contructor el juego al completo, ya que lo vamos a necestiar en alguna que otra función, luego este atributo se va a guardar en la clase.
 En el caso del botón de jugar, y el la flecha hacia atrás, deberemos de volver a enseñar la misma vista en la que estábamos a partir de  ``self.window.show_view(self.game_view)``.
 Por otro lado, si queremos reiniciar la partida con las misma dificultad y nombre que antes, por ello lo que hacemos es, primero, las habitaciones, de las que hablaremos más adelante, las pondremos todas como _no superadas_ y, luego, se creará una nueva partida reiniciando el tiempo de juego y dandole los nombres y dificultades pertinentes. Ejecutamos el ``setup()`` y guardamos de nuevo la partida por si era una partida que ya tenía cambios guardados.
+Para guardar la partida solo tenemos que llamar a la función destinada a ello de la clase __GameView__ y guardaremos todos los avances hasta la fecha.
+Finalmente, si queremos volver al menú principal, solo crearemos una nueva vista, deshabilitaremos nuestro manager y enseñaremos la vista de __TitleView__.
 
+### Game_over (Pantalla de derrota)
+Esta es la pantalla que siempre da rabia de ver, pero igualmente tenemos que hablar de ella
+Es muy parecida al resto, simplemente hemos añadido botones para volver a empezar la partida y para viajar hasta el menú principal.
+
+#### Código
+Hereda las funcionalidades que hemos visto en el resto de casos, no obstante tenemos una pequeña modificación. A la hora de volver al menú principal hemos tenido que realizar un barrido anteriormente para que, como hemos perdido la partida y va a seguir guardada en nuestro sistema gestor de partidas, reinstaurar a los valores por defecto como en el caso de __HABITACIONES__, qeu ya hablaremos más adelante, guarda las salas del juego por lo que deben de estar todas como "no superadas". Si no hubiesemos realizado este control a la hora de ir acvanando niveles no aparecerían enemigos hasta el momento en el que fuimos derrotados.
+
+### Winner_view
+Aquí es donde se acaba la aventura, es la pestaña más simple de todas ya que únicamente dispone de unas estadísticas que plasman el tiempo que se ha tardado en completar la hazaña, así como la dificultad en la que ha sido superada y el nombre que se puso a la hora de crear la partida.
+Por otro lado, también se da la opción de volver a la pantalla del menú para b¡volver a crear una nueva aventura y superarse a uno mismo.
+
+#### Código 
+A la hora de entrar en esta pantalla inmediatamente eliminamos el archivo JSON de la partida en la que nos encontramos para liberar recursos y que, si ya hemos completado la partida, no hay nada más que hacer.
+A la hora de volver al menú principal cabe destacar qeu realizamos el mismo barrido en las salas para marcarlas como no completadas ya que, al ser un atributo que se guarda en memoria RAM y es global a la hora de crear las partidas, a la hora de crear una nueva partida esta tomará dichas salas con valor ``selfnivel_pasado = True`` y nos abrirá de nuevo esta misma vista. 
 ## Elementos del juego
 
 En esta sección se explicarán las mecánicas principales y las clases que componen el juego dentro de la vista principal `GameView`. A diferencia de los menús e interfaces estáticas, el entorno de juego requiere una gestión de físicas, mapas y una actualización de las entidades.
@@ -111,8 +127,12 @@ Consideramos que no hemos llevado una línea fija en un solo área de trabajo si
     - Winner_view
     - Pause_view
     - Charge_game 
+- Desarollo del movimiento del personaje principal
+- Diseño de armas
+- Lógica interna del personaje principal.
+- Gestión de dificultad de la partida
 #### Aspectos más complicados
-Personalmente
+Personalmente, como jefe de proyecto se me ha complicado un poco el hecho de intentar mandar tareas a mis compañeros distribuyendo el trabajo de manera igualitaria.
 ### Marcos Serrano García 
 #### Tareas realizadas
 
