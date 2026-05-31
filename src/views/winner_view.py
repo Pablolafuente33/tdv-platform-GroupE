@@ -30,7 +30,9 @@ class VictoryView(arcade.View):
     def on_show_view(self):
         self.manager.enable()
         self.setup_gui()
-        volumen_actual = getattr(self.window, "volumen_guardado", 0.2)
+        volumen_actual = 0.2
+        if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+            volumen_actual = self.window.bgm_player.volume
         
         nombre_archivo = f'{self.nombre_partida}.json'
         ruta_partida = os.path.join('saves', nombre_archivo)
@@ -48,8 +50,8 @@ class VictoryView(arcade.View):
                 self.window.bgm_player.delete()
                 
                 # Lanzamos el tema de victoria en bucle
-                self.window.bgm_player = self.music.play(loop=True, volume=volumen_actual)
-                self.window.current_bgm_track = "victory"
+            self.window.bgm_player = self.music.play(loop=True, volume=volumen_actual)
+            self.window.current_bgm_track = "victory"
         
     def on_hide_view(self):
             self.manager.disable()

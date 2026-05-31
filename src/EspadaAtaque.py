@@ -6,7 +6,7 @@ class EspadaAtaque(arcade.TextureAnimationSprite):
     def __init__(self, x, y, direccion, enemy_list):
         super().__init__()
         self.scale = 3
-        self.danno = 20
+        self.danno = 25
         self.enemy_list = enemy_list
         self.timer = 0.5
         self.danno_aplicado = False

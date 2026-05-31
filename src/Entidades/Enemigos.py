@@ -201,13 +201,13 @@ class Boss1(Enemigo):
                 self.danno = 10
                 self.coolldown_max = 2.2
             case "Normal":
-                self.max_health = 150
+                self.max_health = 125
                 self.velocidad = 1.5
                 self.detect_distance = 100  
                 self.danno = 12
                 self.coolldown_max = 2.1
             case "Dificil":
-                self.max_health = 175
+                self.max_health = 150
                 self.velocidad = 1.6
                 self.detect_distance = 200  
                 self.danno = 15
