@@ -27,20 +27,14 @@ class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo
         if self.cooldown <= 0:
             self.atacar = True
             
-        # Reducir el tiempo visual y hacer que el arma "siga" al jugador mientras ataca
         if self.tiempo_visible > 0:
             self.tiempo_visible -= delta_time
 
-
     def use(self, enemy_list, player_sprite):
         if self.atacar:
-            # Colocamos el arma y activamos su temporizador visual
             self.tiempo_visible = self.dur_ataque
-            
             self.calcular_impactos(enemy_list, player_sprite)
-
             self.draw_ataque(player_sprite)
-
             self.atacar = False 
             self.cooldown = self.cooldown_max
     
@@ -51,71 +45,34 @@ class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo
         pass
 
 
-    def calcular_impactos(self, enemy_list, player_sprite):
-        for enemy in enemy_list:
-            # 1. Distancia de centro a centro
-            dx = enemy.center_x - player_sprite.center_x
-            dy = enemy.center_y - player_sprite.center_y
-            distancia_real = math.sqrt(dx**2 + dy**2)
-            
-            # Restamos la mitad del ancho del enemigo a la distancia
-            # Así detectamos si la espada le roza el borde del sprite
-            radio_enemigo = enemy.width / 2
-            distancia_al_borde = distancia_real - radio_enemigo
-            
-            # Usamos la distancia corregida
-            if distancia_al_borde <= self.rango:
-                
-                # He puesto un pequeño margen (dx > -10) en vez de (dx > 0) por si el enemigo está desalineado 
-                margen = -15
-                
-                if player_sprite.facing_direction == 0 and dx > margen:   # Derecha
-                    enemy.recibir_danno(self.danno)
-                elif player_sprite.facing_direction == 1 and dx < -margen:# Izquierda
-                    enemy.recibir_danno(self.danno)
-                elif player_sprite.facing_direction == 3 and dy > margen: # Arriba 
-                    enemy.recibir_danno(self.danno)
-                elif player_sprite.facing_direction == 2 and dy < -margen:# Abajo 
-                    enemy.recibir_danno(self.danno)
-
-    def draw_ataque(self, player_sprite):
-        """ Dibuujo de la estela de la espada
-        """
-
-        if self.tiempo_visible <= 0:
-            return
-
-        progreso = 1.0 - (self.tiempo_visible / self.dur_ataque)
-        
-        if player_sprite.facing_direction == 0:
-            angulo_actual = 60 - (120 * progreso) 
-        elif player_sprite.facing_direction == 1:
-            angulo_actual = 120 + (120 * progreso)
-        elif player_sprite.facing_direction == 2: 
-            angulo_actual = -30 - (120 * progreso)
-        elif player_sprite.facing_direction == 3: 
-            angulo_actual = 150 - (120 * progreso)
-        
-
-        rad = math.radians(angulo_actual)
-        
-        # Punto A: La empuñadura (el centro del jugador)
-        inicio_x = player_sprite.center_x
-        inicio_y = player_sprite.center_y
-        
-        # Punto B: La punta de la espada (calculada con el ángulo y el rango)
-        fin_x = inicio_x + math.cos(rad) * self.rango
-        fin_y = inicio_y + math.sin(rad) * self.rango
-        
-        # Dibujamos una línea con grosor de 12 píxeles
-        arcade.draw_line(
-            start_x=inicio_x, 
-            start_y=inicio_y, 
-            end_x=fin_x, 
-            end_y=fin_y, 
-            color=arcade.csscolor.GRAY, 
-            line_width=10
+class Espada(ArmaCuerpoACuerpo):
+    def __init__(self):
+        super().__init__(
+            danno      = 10,
+            rango      = 60,
+            cooldown   = 0.6,
+            imagen     = os.path.join('assets', 'objects', 'lanza.png'),  # icono HUD temporal
+            escala     = 0.4,
+            nombre     = "Espada",
+            dur_ataque = 0.5
         )
+        # Icono HUD: primer frame del spritesheet
+        sheet = arcade.load_spritesheet(os.path.join('assets', 'graphics', 'Espada.png'))
+        frames = sheet.get_texture_grid(size=(64, 64), columns=9, count=36)
+        self.texture = frames[0]
+
+    def use(self, enemy_list, player_sprite):
+        if self.atacar:
+            self.atacar = False
+            self.cooldown = self.cooldown_max
+            from espadaAtaque import EspadaAtaque  # ← e minúscula
+            return EspadaAtaque(
+                x          = player_sprite.center_x,
+                y          = player_sprite.center_y,
+                direccion  = player_sprite.facing_direction,
+                enemy_list = enemy_list
+            )
+        return None
 
 class Lanza(ArmaCuerpoACuerpo):
     def __init__(self):
@@ -264,7 +221,7 @@ class Bomba(arcade.Sprite):
     FRAME_H       = 64
     DUR_EXPLOSION = 0.6
 
-    def __init__(self, start_x, start_y, radio_danno=80, danno=60,
+    def __init__(self, start_x, start_y, radio_danno=80, danno=80,
                  tiempo_mecha=1.5, escala=1.0):
         super().__init__(scale=escala)
 
@@ -343,7 +300,7 @@ class LanzaBombas(ArmaDistancia):
             start_x      = player_sprite.center_x,
             start_y      = player_sprite.center_y,
             radio_danno  = 40,
-            danno        = 60,
+            danno        = 80,
             tiempo_mecha = 1.5,
             escala       = 2.0
         )
@@ -361,7 +318,7 @@ class Boomerang(Proyectil):
         super().__init__(
             velocidad = 7,
             rango     = 300,
-            danno     = 25,
+            danno     = 35,
             imagen    = os.path.join('assets', 'graphics', 'Boomerang.png'),
             escala    = 3
         )
