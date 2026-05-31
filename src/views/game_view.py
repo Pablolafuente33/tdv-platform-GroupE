@@ -361,8 +361,6 @@ class GameView(arcade.View):
 
         #Puertas: Habrá un color diferente si están bloqueadas
         puertas_bloqueadas = len(self.enemy_list) > 0
-        for door in HABITACIONES[self.current_room_id].puertas:
-            self._draw_door_highlight(door.side, puertas_bloqueadas)
         
         #Dibujamos la escena que tiene las paredes y al personaje. Para evitar que los sprites se vean borrosos establecemos el filtro en NEAREST
         self.scene.draw(filter=GL_NEAREST)
@@ -599,35 +597,6 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(x, x+int(bar_w*pct), y, y+bar_h, (180,30,30))  
         arcade.draw_lrbt_rectangle_outline(x, x+bar_w, y, y+bar_h, C_GOLD_DIM, 1) 
     
-    def _draw_door_highlight(self, side, bloqueada=False):
-        half = DOOR_TILES // 2
-
-        tilemap = HABITACIONES[self.current_room_id].tile_map
-        map_width = tilemap.width * tilemap.tile_width * tilemap.scaling
-        map_height = tilemap.height * tilemap.tile_height * tilemap.scaling
-        
-        mid_x = map_width // 2
-        mid_y = map_height // 2
-
-        if side == 'r':
-            x, y = map_width - TILE_SIZE, mid_y - (half + 0.5) * TILE_SIZE
-            w, h = TILE_SIZE, DOOR_TILES * TILE_SIZE
-        elif side == 'l':
-            x, y = 0, mid_y - (half + 0.5) * TILE_SIZE
-            w, h = TILE_SIZE, DOOR_TILES * TILE_SIZE
-        elif side == 'u':
-            x, y = mid_x - half * TILE_SIZE, map_height - TILE_SIZE
-            w, h = DOOR_TILES * TILE_SIZE, TILE_SIZE
-        elif side == 'd':
-            x, y = mid_x - half * TILE_SIZE, 0
-            w, h = DOOR_TILES * TILE_SIZE, TILE_SIZE
-
-        # Rojo si bloqueada, dorado si abierta                            
-        color_relleno  = (140, 20, 20) if bloqueada else (180, 140, 40)   
-        color_borde    = (200, 40, 40) if bloqueada else C_GOLD            
-        arcade.draw_lrbt_rectangle_filled(x, x+w, y, y+h, color_relleno + (180,))
-        arcade.draw_lrbt_rectangle_outline(x, x+w, y, y+h, color_borde, 2)
-
     #Función para mostrar la explicación de los controles
     def _draw_controles(self):
         # Fondo semitransparente
