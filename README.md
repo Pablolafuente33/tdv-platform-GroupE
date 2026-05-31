@@ -4,7 +4,7 @@
 Para ejecutar el videojuego se necestia tener las versiones expecificadas en `requirements.txt`, que son aquellas con las que se ha desarrollado el videojuego.
 
 ## EJECUCIÓN
-Se debe de ejecutar el archivo ``src/main.py``.
+Se debe de ejecutar el archivo `src/main.py`.
 Tras ello se debe de crear una nueva partida con el nombre que se desee y la dificultad con la que se vea más confiado para jugar.
 
 ## CONTROLES
@@ -13,26 +13,27 @@ El videojuego cuenta con un sistema de control adaptado para teclado, permitiend
 
 Movimiento del Personaje:
 
-W: Moverse hacia Arriba.
+- W: Moverse hacia Arriba.
 
-S: Moverse hacia Abajo.
+- S: Moverse hacia Abajo.
 
-A: Moverse hacia la Izquierda.
+- A: Moverse hacia la Izquierda.
 
-D: Moverse hacia la Derecha.
+- D: Moverse hacia la Derecha.
 
-Acciones de Combate:
+<b>Acciones de Combate</b>:
 
-E: Realizar un ataque con la espada. El ataque se ejecuta en la dirección en la que esté mirando el personaje.
 Espacio: Realizar un ataque con el arma seleccionada. El ataque se ejecuta en la dirección en la que esté mirando el personaje.
 
-Gestión del Inventario (HUD):
+<b>Gestión del Inventario (HUD)</b>:
 
 Teclas 1 al 5: Equipar directamente el objeto guardado en el espacio correspondiente del inventario.
 
 Flecha Derecha (→) / Flecha Izquierda (←): Moverse entre los objetos desbloqueados del inventario.
 
-Gestión de Partida:
+Scroll del ratón: moverse entre los objetos desbloqueados del inventario.
+
+<b>Gestión de Partida</b>:
 
 ESC o tecla de pausa asignada: Pausar el juego para acceder a las opciones de guardar partida, ajustar volumen o regresar al menú principal.
 
