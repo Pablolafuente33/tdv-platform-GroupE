@@ -18,10 +18,13 @@ class TitleView(arcade.View):
         self.tex_ajustes = arcade.load_texture(os.path.join(botones,'boton_ajustes.png'))
         self.cargar_button = arcade.load_texture(os.path.join(botones,'boton_cargar_partida.png'))
         self.nueva_partida_button = arcade.load_texture(os.path.join(botones,'boton_nueva_partida.png'))
+        self.tex_cerrar= arcade.load_texture(os.path.join(botones, 'boton_cerrar.png'))
+
         #Musica de inicio
         self.load_music = arcade.load_sound(os.path.join('assets','music','InitSound.mp3'), streaming= True)
 
     def on_show_view(self):
+        self.window.default_camera.use()
         self.manager.enable()
         self.setup_gui()
         
@@ -117,6 +120,24 @@ class TitleView(arcade.View):
             anchor_x="center", 
             anchor_y="center", 
             align_y=-100
+        )
+        # Para cerrar el juego desde la pausa
+        btn_salir = arcade.gui.UITextureButton(texture = self.tex_cerrar, width=100, height=60)
+        
+        @btn_salir.event("on_click")
+        def on_click_salir(event):
+            #Quitamos cualquier música que esté sonando
+            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                self.window.bgm_player.delete()
+            self.window.close() 
+            arcade.exit()
+
+        anchor.add(
+                child=btn_salir, 
+                anchor_x="right", 
+                anchor_y="top", 
+                align_x=-20, 
+                align_y=-20
         )
         
         self.manager.add(anchor)

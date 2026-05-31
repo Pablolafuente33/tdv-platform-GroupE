@@ -15,6 +15,7 @@ class ChargeGameview(arcade.View):
         self.tex_jugar = arcade.load_texture(os.path.join(botones, 'boton_jugar.png'))
         self.tex_volver = arcade.load_texture(os.path.join(botones, 'boton_volver.png'))
         self.tex_vacio = arcade.load_texture(os.path.join(botones, 'boton.png'))
+        self.tex_cerrar = arcade.load_texture(os.path.join(botones, 'boton_cerrar.png'))
 
         self.fuente = arcade.load_font(os.path.join('assets','fuente','BlackCastleMF.ttf' ))
     def on_show_view(self):
@@ -29,22 +30,8 @@ class ChargeGameview(arcade.View):
         
         anchor = arcade.gui.UIAnchorLayout()
         
-        # Contenedor vertical principal
-        v_box = arcade.gui.UIBoxLayout(space_between=15)
-        
-        # Título de la pantalla
-        titulo = arcade.gui.UILabel(
-            text="SELECCIONAR PARTIDA",
-            width=400,
-            height=40,
-            text_color=arcade.color.ORANGE_PEEL,
-            font_size=25,
-            font_name="BlackCastleMF"
-        )
-        v_box.add(titulo)
-        
         # Contenedor para la lista de partidas encontradas
-        lista_partidas_box = arcade.gui.UIBoxLayout(space_between=10)
+        v_box = arcade.gui.UIBoxLayout(space_between=0)
         
         # --- ESCANEO DE LA CARPETA DE GUARDADOS ---
         carpeta_saves = "saves"
@@ -63,22 +50,23 @@ class ChargeGameview(arcade.View):
                 btn_partida = arcade.gui.UITextureButton(
                     text=nombre_partida.upper(),
                     texture = self.tex_vacio,
-                    width=300,
+                    width=500,
                     height=100,
+                    align_x = "center",
                     style = {
                         "normal":{
                         "font_name" : "BlackCastleMF",
-                        "font_size" : 20,
+                        "font_size" : 17,
                         "font_color" : (212, 175, 55)
                         }, 
                         "hover":{
                         "font_name" : "BlackCastleMF",
-                        "font_size" : 20,
+                        "font_size" : 17,
                         "font_color" : (212, 175, 55)
                         },
                         "press":{
                         "font_name" : "BlackCastleMF",
-                        "font_size" : 20,
+                        "font_size" : 17,
                         "font_color" : (212, 175, 55)
                         } 
                     }
@@ -89,7 +77,7 @@ class ChargeGameview(arcade.View):
                 def on_click_cargar(event, archivo_partida=archivo):
                     self.cargar_y_lanzar_partida(archivo_partida)
                     
-                lista_partidas_box.add(btn_partida)
+                v_box.add(btn_partida)
                 
         if not partidas_encontradas:
             # Mensaje en caso de que no haya ninguna partida grabada
@@ -98,18 +86,17 @@ class ChargeGameview(arcade.View):
                 width=400,
                 height=35,
                 text_color=arcade.color.RED,
-                font_size=16,
+                font_size=33,
                 font_name = "BlackCastleMF",
             )
-            lista_partidas_box.add(aviso_vacio)
+            v_box.add(aviso_vacio)
             
-        v_box.add(lista_partidas_box)
         
         # Bajar todo el menú central para que no tape vuestros títulos del fondo
         anchor.add(child=v_box, 
                    anchor_x="center", 
                    anchor_y="center", 
-                   align_y=-50)
+                   align_y=-95)
         
         btn_volver = arcade.gui.UITextureButton(
             texture=self.tex_volver,
@@ -121,13 +108,31 @@ class ChargeGameview(arcade.View):
         def on_click_volver(event):
             from views.title import TitleView
             self.window.show_view(TitleView())
-            
+        
         anchor.add(child=btn_volver, 
                    anchor_x="left", 
                    anchor_y="top", 
                    align_x=20, 
                    align_y=-20)
         
+        btn_salir = arcade.gui.UITextureButton(texture = self.tex_cerrar, width=100, height=50)
+        
+        @btn_salir.event("on_click")
+        def on_click_salir(event):
+            #Quitamos cualquier música que esté sonando
+            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                self.window.bgm_player.delete()
+            self.window.close() 
+            arcade.exit()
+
+        anchor.add(
+                child=btn_salir, 
+                anchor_x="right", 
+                anchor_y="top", 
+                align_x=-20, 
+                align_y=-20
+        )
+
         self.manager.add(anchor)
 
     def cargar_y_lanzar_partida(self, archivo_json):

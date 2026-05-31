@@ -93,7 +93,11 @@ class VictoryView(arcade.View):
         
             @btn_salir.event("on_click")
             def on_click_salir(event):
-                self.window.close
+                #Quitamos cualquier música que esté sonando
+                if hasattr(self.window, "bgm_player") and self.window.bgm_player:
+                    self.window.bgm_player.delete()
+                self.window.close() 
+                arcade.exit()
 
 
             anchor.add(
@@ -109,7 +113,7 @@ class VictoryView(arcade.View):
                 anchor_y="top", 
                 align_x=-20, 
                 align_y=-20
-                )
+            )
 
             self.manager.add(anchor)
 

@@ -13,7 +13,7 @@ from arma import CorazonVida
 from views.game_over import GameOverView
 from views.pause import PauseView
 from views.winner_view import VictoryView
-from arma import Bomba
+from arma import *
 #Para mantener el aspecto retro
 from pyglet.gl import GL_NEAREST
 
@@ -35,9 +35,13 @@ class GameView(arcade.View):
         self.enemy_list = arcade.SpriteList()
         self.wall_list = None
         self.scene = None
-
+        
         self.lista_proyectiles = arcade.SpriteList()
         self.lista_bombas = arcade.SpriteList()
+        self.recompensas = {
+            2: LanzaBoomerang(),
+            5: LanzaBombas(),
+        }
 
         # Motor de física
         self.physics_engine = None
@@ -369,12 +373,16 @@ class GameView(arcade.View):
 
         # Aviso de puertas bloqueadas                                      
         if puertas_bloqueadas:                                             
-            arcade.draw_text(                                              
-                f"¡Derrota a los enemigos! ({len(self.enemy_list)} restantes)",  
-                WINDOW_WIDTH // 2, WINDOW_HEIGHT - 40,                    
-                (180,30,30), font_size=16,                                 
-                anchor_x="center", bold=True                               
-            )  
+                    arcade.draw_text(                                              
+                        f"¡Derrota a los enemigos! ({len(self.enemy_list)} restantes)",  
+                        self.window.width // 2,
+                        self.window.height - 30,
+                        (180, 30, 30), 
+                        font_size=16,                                
+                        anchor_x="center", 
+                        anchor_y="center",
+                        bold=True                              
+                        )  
             
     """"
     --------------------------------------------------------------------------------------
@@ -519,7 +527,7 @@ class GameView(arcade.View):
                     pixelated=True
                     )
 
-                # 2. NUEVO: Filtro de Cooldown
+                # Filtro de Cooldown
                 # Comprobamos si el objeto tiene las variables de cooldown 
                 if hasattr(item, 'cooldown') and hasattr(item, 'cooldown_max'):
                     if item.cooldown > 0 and item.cooldown_max > 0:
@@ -605,6 +613,9 @@ class GameView(arcade.View):
     def on_update(self, delta_time):
         # Tiempo que lleva jugado:
         self.tiempo_jugado += delta_time
+        if int(self.tiempo_jugado) % 90 == 0:
+            self.guardar_partida()
+
 
         jugador = self.player_sprite
         #primero de todo comprobamos que el personaje tiene vida:
@@ -617,7 +628,7 @@ class GameView(arcade.View):
             arcade.play_sound(self.gameover_sound, volume = 0.5)
 
             #LAnzamos la pantalla de GameOver
-            self.window.show_view(GameOverView())
+            self.window.show_view(GameOverView(self))
 
             return # Para que no se haga nada más
         
@@ -638,6 +649,16 @@ class GameView(arcade.View):
             #Si no hay enemigos es qeu nos hemos pasado el nivel.
             if len(self.enemy_list) == 0:
                 self.puertas_bloqueadas.clear() #Limpiamos la lista donde están las puerrtas bloqueadas
+
+                if not HABITACIONES[self.current_room_id].nivel_pasado:
+                    
+                    # Verificamos si esta sala tiene un arma asignada como recompensa
+                    if self.current_room_id in self.recompensas:
+                        arma_nueva = self.recompensas[self.current_room_id]
+                        
+                        # Intentamos meterla en el inventario usando el método corregido
+                        exito = self.player_sprite.recoger_objeto(arma_nueva)
+
                 HABITACIONES[self.current_room_id].nivel_pasado = True
 
                 #Desactivamos las colisiones y hacemos invisibles las puertas cerradas
@@ -694,7 +715,7 @@ class GameView(arcade.View):
                 if (enemigo.center_x < -margen or enemigo.center_x > WINDOW_WIDTH + margen or 
                     enemigo.center_y < -margen or enemigo.center_y > WINDOW_HEIGHT + margen):
                     print("¡Un enemigo se salió del mapa por un glitch! Eliminándolo...")
-                    enemigo.health = 0 
+                    enemigo.kill()
                 
                 #Comprobación colisión con personaje
                 if arcade.check_for_collision(enemigo, self.player_sprite):
@@ -792,14 +813,6 @@ class GameView(arcade.View):
     """
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ESCAPE:
-            # Volver a la pantalla de título
-            # Detener música de juego al salir
-            if hasattr(self.window, "bgm_player") and self.window.bgm_player:
-                self.window.bgm_player.delete()
-                self.window.bgm_player = None
-            if hasattr(self.window, "current_bgm_track"):
-                self.window.current_bgm_track = None
-
             # Volver a la pantalla de título
             title_view = PauseView(self)
             self.window.show_view(title_view)
