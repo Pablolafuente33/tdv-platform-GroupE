@@ -230,6 +230,9 @@ class Room3(Habitacion):
         margen = 80
         RADIO = 2500 if dificultad != "Dificil" else 0
 
+        limite_ancho = int(self.tile_map.width * self.tile_map.tile_width * TILE_SCALING)
+        limite_alto = int(self.tile_map.height * self.tile_map.tile_height * TILE_SCALING)
+
         for _ in range(cantidad_enemigos):
             e = Enemigo1()
             intentos = 0
@@ -238,8 +241,8 @@ class Room3(Habitacion):
             while not posicion_valida and intentos < 100:
                 intentos +=1
                 #Tomamos una posición aleatoria
-                e.center_x = random.randint(margen,WINDOW_WIDTH - margen)                                                
-                e.center_y = random.randint(margen,WINDOW_HEIGHT - margen)
+                e.center_x = random.randint(margen,limite_ancho - margen)                                                
+                e.center_y = random.randint(margen,limite_alto - margen)
 
                 # Ci¡omprobamos que no spawnee encima del jugador
                 distancia_al_jugador = math.sqrt(
@@ -296,6 +299,9 @@ class Room4(Habitacion):
         margen = 80
         RADIO = 2500 if dificultad != "Dificil" else 0
 
+        limite_ancho = int(self.tile_map.width * self.tile_map.tile_width * TILE_SCALING)
+        limite_alto = int(self.tile_map.height * self.tile_map.tile_height * TILE_SCALING)
+
         for _ in range(cantidad_enemigos):
             e = Enemigo3()
             intentos = 0
@@ -304,8 +310,8 @@ class Room4(Habitacion):
             while not posicion_valida and intentos < 100:
                 intentos += 1
                 #Tomamos una posición aleatoria
-                e.center_x = random.randint(margen,WINDOW_WIDTH - margen)                                                
-                e.center_y = random.randint(margen,WINDOW_HEIGHT - margen)
+                e.center_x = random.randint(margen,limite_ancho - margen)                                                
+                e.center_y = random.randint(margen,limite_alto - margen)
 
                 # Ci¡omprobamos que no spawnee encima del jugador
                 distancia_al_jugador = math.sqrt(

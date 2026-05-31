@@ -130,6 +130,21 @@ class GameView(arcade.View):
             self.player_sprite.center_x = datos_carga["jugador"]["pos_x"]
             self.player_sprite.center_y = datos_carga["jugador"]["pos_y"]
             self.player_sprite.health = datos_carga["jugador"]["vida"]
+            if "inventario" in datos_carga["jugador"]:
+                from arma import Espada, Lanza, LanzaBoomerang, LanzaBombas
+                inventario_restaurado = []
+                for nombre_arma in datos_carga["jugador"]["inventario"]:
+                    if nombre_arma == "Espada":
+                        inventario_restaurado.append(Espada())
+                    elif nombre_arma == "Lanza":
+                        inventario_restaurado.append(Lanza())
+                    elif nombre_arma == "LanzaBoomerang":
+                        inventario_restaurado.append(LanzaBoomerang())
+                    elif nombre_arma == "LanzaBombas":
+                        inventario_restaurado.append(LanzaBombas())
+                    else:
+                        inventario_restaurado.append(None)
+                self.player_spritee.inventario = inventario_restaurado   
         else :
             sx, sy = self.__spawn_pos(enter_from)        
             self.player_sprite.center_x = sx
@@ -617,7 +632,6 @@ class GameView(arcade.View):
         if int(self.tiempo_jugado) % 90 == 0:
             self.guardar_partida()
 
-
         jugador = self.player_sprite
         #primero de todo comprobamos que el personaje tiene vida:
         if jugador is not None and jugador.health <= 0:
@@ -786,6 +800,13 @@ class GameView(arcade.View):
             lista_enemigos.append(datos_enemigo)
         #También hay que ver que es lo que pasa en cada sala ( si la hemso superado)
         salas = {str(id_sala): sala.nivel_pasado for id_sala, sala in enumerate(HABITACIONES)}
+        inventario = []
+        for objeto in self.player_sprite.inventario:
+            if objeto is not None:
+                inventario.append(type(objeto).__name__)
+            else:
+                inventario.append(None)
+        
         datos = {
             "nombre_partida": self.nombre_partida,
             "tiempo_jugado_segundos": self.tiempo_jugado,
@@ -794,7 +815,8 @@ class GameView(arcade.View):
             "jugador": {
                 "vida": self.player_sprite.health,
                 "pos_x": self.player_sprite.center_x,
-                "pos_y": self.player_sprite.center_y
+                "pos_y": self.player_sprite.center_y,
+                "inventario": inventario
             },
             "enemigos_vivos" : lista_enemigos,
             "habitaciones" : salas
