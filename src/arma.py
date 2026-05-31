@@ -48,7 +48,7 @@ class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo
 class Espada(ArmaCuerpoACuerpo):
     def __init__(self):
         super().__init__(
-            danno      = 20,
+            danno      = 25,
             rango      = 65,
             cooldown   = 0.6,
             imagen     = os.path.join('assets', 'objects', 'lanza.png'),  # icono HUD temporal

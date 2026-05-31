@@ -60,16 +60,16 @@ class GameOverView(arcade.View):
             for sala in HABITACIONES:
                 sala.nivel_pasado = False
 
-                from views.game_view import GameView
-                juego_reiniciado = GameView()
+            from views.game_view import GameView
+            juego_reiniciado = GameView()
 
-                juego_reiniciado.nombre_partida = self.game_view.nombre_partida
-                juego_reiniciado.dificultad = self.game_view.dificultad
-                juego_reiniciado.tiempo_jugado = 0.0
+            juego_reiniciado.nombre_partida = self.game_view.nombre_partida
+            juego_reiniciado.dificultad = self.game_view.dificultad
+            juego_reiniciado.tiempo_jugado = 0.0
 
-                juego_reiniciado.setup(room_id=0)
-                juego_reiniciado.guardar_partida()
-                self.window.show_view(juego_reiniciado)
+            juego_reiniciado.setup(room_id=0)
+            juego_reiniciado.guardar_partida()
+            self.window.show_view(juego_reiniciado)
 
         @btn_salir.event("on_click")
         def on_click_salir(event):
@@ -82,7 +82,24 @@ class GameOverView(arcade.View):
         @menu_btn.event("on_click")
         def on_click_menu(event):
             self.manager.disable()
-            
+            # Reseteamos las habitaciones
+            from habitaciones import HABITACIONES
+            for sala in HABITACIONES:
+                sala.nivel_pasado = False
+
+            #SOBREESCRITURA DEL JSON EN DISCO (Reset de seguridad)
+            from views.game_view import GameView
+            juego_reseteado = GameView()
+
+            # Traspasamos los datos de configuración clave
+            juego_reseteado.nombre_partida = self.game_view.nombre_partida
+            juego_reseteado.dificultad = self.game_view.dificultad
+            juego_reseteado.tiempo_jugado = 0.0  # Volvemos a poner el cronómetro a cero
+
+            # Inicializamos y forzamos el guardado en el archivo
+            juego_reseteado.setup(room_id=0)
+            juego_reseteado.guardar_partida()
+
             from views.title import TitleView
             nuevo_juego = TitleView()
             self.window.show_view(nuevo_juego)
