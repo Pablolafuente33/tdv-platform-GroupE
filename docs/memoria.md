@@ -71,6 +71,33 @@ Por otro lado, si queremos reiniciar la partida con las misma dificultad y nombr
 
 ## Elementos del juego
 
+En esta sección se explicarán las mecánicas principales y las clases que componen el juego dentro de la vista principal `GameView`. A diferencia de los menús e interfaces estáticas, el entorno de juego requiere una gestión de físicas, mapas y una actualización de las entidades.
+
+### Habitaciones
+El juego se compone de un conjunto de salas que se encuentran en la clase `habitaciones.py`. Cada habitación (diseñada en Tiled) cuenta con una estructura con un tamaño de 64x64 píxeles (`TILE_SIZE = 64`).
+
+ Las paredes, límites de la mazmorra y colisiones estructurales se almacenan en una lista de sprites (`self.wall_list`). Los márgenes funcionales de la sala se calculan  restando el tamaño del tile a la resolución por defecto ($1280 \times 704$), delimitando así el área de movimiento seguro para las entidades.
+
+Cada instancia de habitación posee una lista de objetos tipo `Door` orientados en el norte, sur, este u oeste. El script comprueba si existen enemigos vivos en la sala mediante `len(self.enemy_list) > 0`. 
+
+Si quedan enemigos, las puertas ejecutan el método `_draw_door_highlight` para que el jugador no pueda salir de la sala.
+
+Al morir el último enemigo, las colisiones de las puertas se inhabilitan, permitiendo al jugador avanzar a la sala adyacente, lo que dispara un refresco de la escena y recoloca al personaje en el extremo opuesto (`OPUESTO`) del mapa.
+
+### Entidades (Player y Enemy)
+
+El jugador (`Player`) se mueve por el mapa detectando las pulsaciones del teclado establecidas `GameView` mediante booleanos (`up_pressed`, `down_pressed`, etc.). Su vector de velocidad se actualiza en el método `actualizar_movimiento`. Cuenta con un atributo de velocidad constante fijado en `5.05` y un radio de colisión de `20` píxeles.
+
+La lista `self.enemy_list` abarca los tipos de enemigos existentes:
+
+Los enemigos ordinarios (Enemigo 1, 2 y 3), los cuales poseen algoritmos de persecución básicos que calculan la distancia respecto al `center_x` y `center_y` del jugador para desplazarse hacia él. Su tasa de aparición se pondera mediante la variable `dificultad`.
+
+Los bosses (Boss 1, 2 y 3), los cuales son un tipo de enemigo que posee más puntos de vida y un mayor ataque, suponiendo un mayor desafío al jugador.
+
+### Motor de Físicas y Bucle de Actualización (`on_update`)
+
+### Mecánicas de Combate y Armamento
+
 ## Integrantes del equipo
 Ahora vamos a enumerar cada una de las tareas que ha llevado a cabo cada uno de los integrantes del equipo, así como algunos comentarios sobre los aspectos que han sido más complicados de llevar y que es lo que más han disfrutado del proyecto.
 
@@ -90,4 +117,11 @@ Personalmente
 #### Tareas realizadas
 
 ### Daniel Viana Cascón
-#### Tareas realizadas 
+#### Tareas realizadas
+- Diseño y creación de habitaciones.
+- Desarrollo del movimiento de los enemigos.
+- Desarrollo de vistas:
+    - Title_view
+    - Setting_view
+#### Aspectos más complicados
+En mi caso, lo más díficil ha sido la creación del modo de pantalla completa en la vista de ajustes, principalmente debido a todos los problemas que conlleva el cambio de resolución de pantalla. Sin embargo, creo que he conseguido afrontarlos de manera eficiente.
