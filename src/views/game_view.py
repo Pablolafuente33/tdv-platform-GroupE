@@ -67,7 +67,7 @@ class GameView(arcade.View):
         self.dificultad = "Normal"
         #Sonidos
         self.gameover_sound = arcade.load_sound(":resources:sounds/gameover1.wav")
-        self.music_game = arcade.load_sound(os.path.join('assets', 'music', 'GameSound.mp3'), streaming=True)
+        self.music_game = arcade.load_sound(os.path.join('assets', 'music', 'GameSound.wav'), streaming=True)
 
         self.lista_corazones = arcade.SpriteList()
 
@@ -208,7 +208,7 @@ class GameView(arcade.View):
         self.player_locked = enter_from is not None
 
         # IMPLEMENTACIÓN DEL SONIDO
-        volumen_actual = getattr(self.window, "volumen_guardado", 0.2)
+        volumen_actual = getattr(self.window, "volumen_guardado", 0.5)
 
         if not hasattr(self.window, "current_bgm_track") or self.window.current_bgm_track != "game":
                     if hasattr(self.window, "bgm_player") and self.window.bgm_player:
