@@ -51,18 +51,6 @@ class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo
         pass
 
 
-class Espada(ArmaCuerpoACuerpo):     
-    def __init__(self):
-        super().__init__(
-            danno       = 30,
-            rango       = 60,
-            cooldown    = 1,
-            imagen      = os.path.join('assets','objects','espada.png'),
-            escala      = 0.4,
-            nombre      = "Espada",
-            dur_ataque  = 0.1 
-        )
-
     def calcular_impactos(self, enemy_list, player_sprite):
         for enemy in enemy_list:
             # 1. Distancia de centro a centro

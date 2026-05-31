@@ -43,7 +43,7 @@ class Player(arcade.TextureAnimationSprite):
         self.health = 100
         self.max_health = 100
         #Para los objetos
-        self.inventario = [Espada(), Lanza(), LanzaBoomerang(), LanzaBombas(), None]
+        self.inventario = [Lanza(), LanzaBoomerang(), LanzaBombas(), None]
         self.equipped_index = 0
         self.facing_direction = 0
     
