@@ -5,7 +5,7 @@ import math
 import json
 
 from espadaAtaque import EspadaAtaque
-from Entidades.player import Player
+from entidades.player import Player
 from habitaciones import HABITACIONES, OPUESTO
 from espadaAtaque import EspadaAtaque
 from constantes import *
@@ -131,20 +131,18 @@ class GameView(arcade.View):
             self.player_sprite.center_y = datos_carga["jugador"]["pos_y"]
             self.player_sprite.health = datos_carga["jugador"]["vida"]
             if "inventario" in datos_carga["jugador"]:
-                from arma import Espada, Lanza, LanzaBoomerang, LanzaBombas
+                from arma import Espada, LanzaBoomerang, LanzaBombas
                 inventario_restaurado = []
                 for nombre_arma in datos_carga["jugador"]["inventario"]:
                     if nombre_arma == "Espada":
                         inventario_restaurado.append(Espada())
-                    elif nombre_arma == "Lanza":
-                        inventario_restaurado.append(Lanza())
                     elif nombre_arma == "LanzaBoomerang":
                         inventario_restaurado.append(LanzaBoomerang())
                     elif nombre_arma == "LanzaBombas":
                         inventario_restaurado.append(LanzaBombas())
                     else:
                         inventario_restaurado.append(None)
-                self.player_spritee.inventario = inventario_restaurado   
+                self.player_sprite.inventario = inventario_restaurado   
         else :
             sx, sy = self.__spawn_pos(enter_from)        
             self.player_sprite.center_x = sx
@@ -155,7 +153,7 @@ class GameView(arcade.View):
         self.enemy_list = arcade.SpriteList()
 
         if datos_carga is not None:
-            from Entidades.enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
+            from entidades.enemigos import Enemigo1, Enemigo2, Enemigo3, Boss1, Boss2, Boss3
             for datos_enemigos in datos_carga["enemigos_vivos"]:
                 clase = datos_enemigos["clase_enemigo"]
                 if clase == "Enemigo1":
@@ -475,7 +473,7 @@ class GameView(arcade.View):
         )
  
         #  Inventario 
-        for i in range(5):
+        for i in range(len(self.player_sprite.inventario)):
             sx = hud_x + i * (HUD_SLOT_SIZE + HUD_SLOT_GAP)
             sy = slots_y
             cx = sx + HUD_SLOT_SIZE // 2

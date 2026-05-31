@@ -32,6 +32,15 @@ class VictoryView(arcade.View):
         self.setup_gui()
         volumen_actual = getattr(self.window, "volumen_guardado", 0.2)
         
+        nombre_archivo = f'{self.nombre_partida}.json'
+        ruta_partida = os.path.join('saves', nombre_archivo)
+        
+        if os.path.exists(ruta_partida):
+            try:
+                os.remove(ruta_partida)
+            except Exception as e:
+                print(f"[Error] No se pudo borrar el archivo de la partida ganada: {e}")
+
         # Comprobamos que no esté sonando ya la de victoria para no duplicarla
         if not hasattr(self.window, "current_bgm_track") or self.window.current_bgm_track != "victory":
             # Quitar música que estuviera sonando

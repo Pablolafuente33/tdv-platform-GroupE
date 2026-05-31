@@ -48,8 +48,8 @@ class ArmaCuerpoACuerpo(arcade.Sprite): #base para varias armas cuerpo a cuerpo
 class Espada(ArmaCuerpoACuerpo):
     def __init__(self):
         super().__init__(
-            danno      = 10,
-            rango      = 60,
+            danno      = 20,
+            rango      = 65,
             cooldown   = 0.6,
             imagen     = os.path.join('assets', 'objects', 'lanza.png'),  # icono HUD temporal
             escala     = 0.4,
@@ -73,7 +73,7 @@ class Espada(ArmaCuerpoACuerpo):
                 enemy_list = enemy_list
             )
         return None
-
+    """
 class Lanza(ArmaCuerpoACuerpo):
     def __init__(self):
         super().__init__(
@@ -119,10 +119,8 @@ class Lanza(ArmaCuerpoACuerpo):
             color=arcade.csscolor.SADDLE_BROWN, 
             line_width=6 # Más fina que la espada
         )
-        """
-        arcade.draw_triangle_filled(
-
-        )"""
+        
+    
 
     def calcular_impactos(self, enemy_list, player_sprite):
         for enemy in enemy_list:
@@ -144,7 +142,7 @@ class Lanza(ArmaCuerpoACuerpo):
                     enemy.recibir_danno(self.danno)
                 elif player_sprite.facing_direction == 3 and dy > 0 and abs(dx) < margen_lateral:
                     enemy.recibir_danno(self.danno)
-
+    """
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Esto es lo que se va a ver que va a ir viajando por la pantalla
 
@@ -398,4 +396,4 @@ class CorazonVida(arcade.Sprite):
         self.texture = frames[0]
         self.center_x = x
         self.center_y = y
-        self.curacion = 10
+        self.curacion = 15
