@@ -1,0 +1,22 @@
+{
+    "nombre_partida": "Partida1",
+    "tiempo_jugado_segundos": 0.9938170999812428,
+    "dificultad": "Normal",
+    "sala_actual": 0,
+    "jugador": {
+        "vida": 100,
+        "pos_x": 707.7417784899835,
+        "pos_y": 420.69
+    },
+    "enemigos_vivos": [],
+    "habitaciones": {
+        "0": true,
+        "1": false,
+        "2": false,
+        "3": false,
+        "4": false,
+        "5": false,
+        "6": false,
+        "7": false
+    }
+}

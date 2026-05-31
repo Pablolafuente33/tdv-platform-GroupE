@@ -373,12 +373,16 @@ class GameView(arcade.View):
 
         # Aviso de puertas bloqueadas                                      
         if puertas_bloqueadas:                                             
-            arcade.draw_text(                                              
-                f"¡Derrota a los enemigos! ({len(self.enemy_list)} restantes)",  
-                WINDOW_WIDTH // 2, WINDOW_HEIGHT - 40,                    
-                (180,30,30), font_size=16,                                 
-                anchor_x="center", bold=True                               
-            )  
+                    arcade.draw_text(                                              
+                        f"¡Derrota a los enemigos! ({len(self.enemy_list)} restantes)",  
+                        self.window.width // 2,
+                        self.window.height - 30,
+                        (180, 30, 30), 
+                        font_size=16,                                
+                        anchor_x="center", 
+                        anchor_y="center",
+                        bold=True                              
+                        )  
             
     """"
     --------------------------------------------------------------------------------------
