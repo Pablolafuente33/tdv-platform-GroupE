@@ -4,6 +4,7 @@ import os
 import math
 import json
 
+from espadaAtaque import EspadaAtaque
 from Entidades.player import Player
 from habitaciones import HABITACIONES, OPUESTO
 from espadaAtaque import EspadaAtaque
@@ -856,9 +857,11 @@ class GameView(arcade.View):
             if arma_activa is not None:
                 resultado = arma_activa.use(self.enemy_list, self.player_sprite)
                 if resultado is not None:
-                    # Distinguimos si es bomba o proyectil normal
                     if isinstance(resultado, Bomba):
-                        self.lista_bombas.append(resultado)        
+                        self.lista_bombas.append(resultado)
+                    elif isinstance(resultado, EspadaAtaque):
+                        self.player_sprite.atacar()
+                        self.scene.add_sprite("espada", resultado)
                     else:
                         self.lista_proyectiles.append(resultado)
 
@@ -880,15 +883,6 @@ class GameView(arcade.View):
         elif key == arcade.key.LEFT:
             self.player_sprite.objeto_anterior()
 
-        if key == arcade.key.E:
-            self.player_sprite.atacar()
-            espada = EspadaAtaque(
-                x=self.player_sprite.center_x,
-                y=self.player_sprite.center_y,
-                direccion=self.player_sprite.facing_direction,
-                enemy_list=self.enemy_list
-            )
-            self.scene.add_sprite("espada", espada)
 
         #Calculamos la nueva posición
         self.player_sprite.actualizar_movimiento(self.up_pressed, self.down_pressed, self.left_pressed, self.right_pressed)
