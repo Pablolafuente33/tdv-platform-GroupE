@@ -31,6 +31,7 @@ Teclas 1 al 5: Equipar directamente el objeto guardado en el espacio correspondi
 
 Flecha Derecha (→) / Flecha Izquierda (←): Moverse entre los objetos desbloqueados del inventario.
 
+Scroll del ratón: moverse entre los objetos desbloqueados del inventario.
 
 <b>Gestión de Partida</b>:
 
