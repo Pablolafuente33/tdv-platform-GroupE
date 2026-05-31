@@ -205,3 +205,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Partidas guardadas (Ignorar archivos de guardado locales)
+saves/*.json

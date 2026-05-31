@@ -7,8 +7,7 @@
 import arcade
 import os
 from pathlib import Path
-from Entidades.gestor_animaciones import Gestor_animaciones
-from espadaAtaque import EspadaAtaque
+from entidades.gestor_animaciones import Gestor_animaciones
 from constantes import PLAYER_SPEED, RIGHT, UP, LEFT, DOWN
 from arma import *
 import math
@@ -43,7 +42,7 @@ class Player(arcade.TextureAnimationSprite):
         self.health = 100
         self.max_health = 100
         #Para los objetos
-        self.inventario = [Espada(), None, None, None, None]#[Espada(), Lanza(), LanzaBoomerang(), LanzaBombas(), None]
+        self.inventario = [Espada(), None, None]#[Espada(), Lanza(), LanzaBoomerang(), LanzaBombas(), None]
         self.equipped_index = 0
         self.facing_direction = 0
     

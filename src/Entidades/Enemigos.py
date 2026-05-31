@@ -3,7 +3,7 @@ import math
 import random
 
 from pathlib import Path
-from Entidades.gestor_animaciones import Gestor_animaciones
+from entidades.gestor_animaciones import Gestor_animaciones
 import os
 import arcade
 
