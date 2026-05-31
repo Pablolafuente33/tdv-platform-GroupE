@@ -61,10 +61,14 @@ class Espada(ArmaCuerpoACuerpo):
         frames = sheet.get_texture_grid(size=(64, 64), columns=9, count=36)
         self.texture = frames[0]
 
+        self.sonido_ataque = arcade.load_sound(os.path.join('assets', 'sound', 'sonido_espada.mp3'))
+    
     def use(self, enemy_list, player_sprite):
         if self.atacar:
             self.atacar = False
             self.cooldown = self.cooldown_max
+
+            self.sonido_ataque.play(volume=0.1, loop = False)
             from espadaAtaque import EspadaAtaque  # ← e minúscula
             return EspadaAtaque(
                 x          = player_sprite.center_x,
