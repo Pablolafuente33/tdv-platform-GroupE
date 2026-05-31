@@ -71,6 +71,8 @@ class GameView(arcade.View):
 
         self.lista_corazones = arcade.SpriteList()
 
+        self.mostrar_controles = True
+
     """
     ===================================================================================================================
     ===============================================     SETUP     =====================================================
@@ -382,6 +384,12 @@ class GameView(arcade.View):
         #Corazones:
         self.lista_corazones.draw(filter=GL_NEAREST)
 
+        #Para el cuadro explicativo
+        if self.mostrar_controles:
+            self.gui_camera.use()
+            self._draw_controles()
+            return
+
         # HUD (cámara GUI fija)
         self.gui_camera.use()
         
@@ -621,6 +629,58 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(x, x+w, y, y+h, color_relleno + (180,))
         arcade.draw_lrbt_rectangle_outline(x, x+w, y, y+h, color_borde, 2)
 
+    #Función para mostrar la explicación de los controles
+    def _draw_controles(self):
+        # Fondo semitransparente
+        arcade.draw_lrbt_rectangle_filled(
+            0, self.window.width, 0, self.window.height,
+            (0, 0, 0, 180)
+        )
+    
+        cx = self.window.width // 2
+        cy = self.window.height // 2
+
+        # Cuadro
+        arcade.draw_lrbt_rectangle_filled(
+            cx - 220, cx + 220,
+            cy - 180, cy + 180,
+            (20, 12, 4)
+        )
+        arcade.draw_lrbt_rectangle_outline(
+            cx - 220, cx + 220,
+            cy - 180, cy + 180,
+            C_GOLD, 2
+        )
+
+        # Título
+        arcade.draw_text(
+            "CONTROLES",
+            cx, cy + 150,
+            C_GOLD, font_size=20,
+            anchor_x="center", bold=True
+        )
+
+        # Controles
+        controles = [
+            ("W / A / S / D",     "Mover al personaje"),
+            ("SPACE",             "Usar arma equipada"),
+            ("1 - 5  /  ← →",    "Cambiar arma"),
+            ("Scroll ratón",      "Cambiar arma"),
+            ("ESC",               "Pausa"),
+        ]
+        for i, (tecla, desc) in enumerate(controles):
+            y = cy + 90 - i * 40
+            arcade.draw_text(tecla, cx - 180, y, C_GOLD, font_size=12, bold=True)
+            arcade.draw_text(desc,  cx - 20,  y, C_MUTED, font_size=12)
+
+        # Pie
+        arcade.draw_text(
+            "Pulsa ENTER para continuar",
+            cx, cy - 155,
+            C_MUTED, font_size=11,
+            anchor_x="center"
+        )
+
     """
     =======================================================================================================================================
     =================================================           ON UPDATE               ===================================================
@@ -841,6 +901,13 @@ class GameView(arcade.View):
             self.window.show_view(title_view)
             return
         
+        #Para pasar del panel de explicación
+        if self.mostrar_controles:
+            if key == arcade.key.ENTER:
+                self.mostrar_controles = False
+            return  # bloquea cualquier otra tecla mientras se muestra
+
+
         #Teclas para mover el personaje
         if key in [arcade.key.A]:
             self.left_pressed = True
@@ -882,6 +949,8 @@ class GameView(arcade.View):
             self.player_sprite.objeto_siguiente()
         elif key == arcade.key.LEFT:
             self.player_sprite.objeto_anterior()
+
+    
 
 
         #Calculamos la nueva posición
