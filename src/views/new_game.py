@@ -1,7 +1,6 @@
 import arcade
 import arcade.gui
 import os
-import sys
 
 class NewGameView(arcade.View):
     def __init__(self):
@@ -230,7 +229,7 @@ class NewGameView(arcade.View):
             if hasattr(self.window, "bgm_player") and self.window.bgm_player:
                 self.window.bgm_player.delete()
             self.window.close() 
-            sys.exit()
+            arcade.exit()
         
         anchor.add(
                 child=btn_salir, 

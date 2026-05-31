@@ -2,6 +2,9 @@
 # REQUISITOS DEL PROYECTO: GROUP E - MEDIEVAL FIGHT (UAH)
 # =====================================================================
 
+# ENTORNO REQUERIDO: 
+Python 3.13.x 
+
 # Framework Gráfico Principal y Motor de Audio
 arcade==3.0.0b6
 

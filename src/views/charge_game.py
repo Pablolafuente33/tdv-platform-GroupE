@@ -2,7 +2,6 @@ import arcade
 import arcade.gui
 import os
 import json
-import sys
 
 class ChargeGameview(arcade.View):
     def __init__(self):
@@ -124,7 +123,15 @@ class ChargeGameview(arcade.View):
             if hasattr(self.window, "bgm_player") and self.window.bgm_player:
                 self.window.bgm_player.delete()
             self.window.close() 
-            sys.exit()
+            arcade.exit()
+
+        anchor.add(
+                child=btn_salir, 
+                anchor_x="right", 
+                anchor_y="top", 
+                align_x=-20, 
+                align_y=-20
+        )
 
         self.manager.add(anchor)
 

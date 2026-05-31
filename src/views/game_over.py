@@ -1,6 +1,5 @@
 import arcade
 import os
-import sys
 
 class GameOverView(arcade.View):
     def __init__(self, game_view):
@@ -78,7 +77,7 @@ class GameOverView(arcade.View):
             if hasattr(self.window, "bgm_player") and self.window.bgm_player:
                 self.window.bgm_player.delete()
             self.window.close() 
-            sys.exit()
+            arcade.exit()
         
         @menu_btn.event("on_click")
         def on_click_menu(event):

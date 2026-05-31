@@ -97,7 +97,7 @@ class VictoryView(arcade.View):
                 if hasattr(self.window, "bgm_player") and self.window.bgm_player:
                     self.window.bgm_player.delete()
                 self.window.close() 
-                sys.exit()
+                arcade.exit()
 
 
             anchor.add(

@@ -1,6 +1,5 @@
 import arcade
 import os
-import sys
 
 class PauseView(arcade.View):
     def __init__(self, game_view):
@@ -104,16 +103,16 @@ class PauseView(arcade.View):
             for sala in HABITACIONES:
                 sala.nivel_pasado = False
 
-                from views.game_view import GameView
-                juego_reiniciado = GameView()
+            from views.game_view import GameView
+            juego_reiniciado = GameView()
 
-                juego_reiniciado.nombre_partida = self.game_view.nombre_partida
-                juego_reiniciado.dificultad = self.game_view.dificultad
-                juego_reiniciado.tiempo_jugado = 0.0
+            juego_reiniciado.nombre_partida = self.game_view.nombre_partida
+            juego_reiniciado.dificultad = self.game_view.dificultad
+            juego_reiniciado.tiempo_jugado = 0.0
 
-                juego_reiniciado.setup(room_id=0)
-                juego_reiniciado.guardar_partida()
-                self.window.show_view(juego_reiniciado)
+            juego_reiniciado.setup(room_id=0)
+            juego_reiniciado.guardar_partida()
+            self.window.show_view(juego_reiniciado)
 
         @guardar_btn.event("on_click")
         def on_click_guardar(event):
@@ -152,7 +151,7 @@ class PauseView(arcade.View):
             if hasattr(self.window, "bgm_player") and self.window.bgm_player:
                 self.window.bgm_player.delete()
             self.window.close() 
-            sys.exit()
+            arcade.exit()
 
         anchor.add(
                 child=btn_salir, 

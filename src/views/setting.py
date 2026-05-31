@@ -1,6 +1,6 @@
 import arcade
 import os
-import sys
+
 
 from views.title import TitleView
 
@@ -104,7 +104,7 @@ class SettingsView(arcade.View):
             if hasattr(self.window, "bgm_player") and self.window.bgm_player:
                 self.window.bgm_player.delete()
             self.window.close() 
-            sys.exit()
+            arcade.exit()
         
         anchor.add(
             child=v_box, 

@@ -523,7 +523,7 @@ class GameView(arcade.View):
                     pixelated=True
                     )
 
-                # 2. NUEVO: Filtro de Cooldown
+                # Filtro de Cooldown
                 # Comprobamos si el objeto tiene las variables de cooldown 
                 if hasattr(item, 'cooldown') and hasattr(item, 'cooldown_max'):
                     if item.cooldown > 0 and item.cooldown_max > 0:
@@ -609,6 +609,9 @@ class GameView(arcade.View):
     def on_update(self, delta_time):
         # Tiempo que lleva jugado:
         self.tiempo_jugado += delta_time
+        if int(self.tiempo_jugado) % 90 == 0:
+            self.guardar_partida()
+
 
         jugador = self.player_sprite
         #primero de todo comprobamos que el personaje tiene vida:
