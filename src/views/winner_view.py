@@ -77,6 +77,12 @@ class VictoryView(arcade.View):
 
             @btn_menu.event("on_click")
             def on_click_menu(event):
+                self.manager.disable()
+                
+                from habitaciones import HABITACIONES
+                for sala in HABITACIONES:
+                    sala.nivel_pasado = False
+                
                 # Limpiamos hilos de música por si acaso
                 if hasattr(self.window, "bgm_player") and self.window.bgm_player:
                     self.window.bgm_player.delete()
