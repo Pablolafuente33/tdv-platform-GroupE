@@ -209,6 +209,32 @@ Los bosses (Boss 1, 2 y 3), los cuales son un tipo de enemigo que posee más pun
   
 
 ### Motor de Físicas y Bucle de Actualización (`on_update`)
+
+El método `on_update` actúa como el bucle del juego. A través del parámetro `delta_time`, el método actualiza la inteligencia artificial, el movimiento de las entidades, las colisiones y el ciclo de vida de los objetos.
+
+Para cada frame, el sistema recorre de forma dinámica la lista de enemigos activos (`self.enemy_list`) realizando lo siguiente:
+
+- Calcula la distancia entre el enemigo y el jugador. Si la distancia es menor al rango de detección (`detect_distance`), se llama a `seguir_jugador()` y en caso contrario, se ejecuta `caminar_aleatorio()`.
+
+- Cada enemigo delega sus interacciones con el entorno a su propio motor independiente en `self.enemy_physics_engines[i]`. Tras decidir el rumbo de la IA, se actualiza el motor de físicas y la animación del sprite.
+
+- Si un enemigo sobrepasa un perímetro permititdo (`margen = 200`) debido a un error de colisión, el sistema lo elimina automáticamente mediante `enemigo.kill()`.
+
+Mediante funciones de la librería (`arcade.check_for_collision` y `arcade.check_for_collision_with_list`), el bucle maneja el combate:
+
+- Si un enemigo tiene contacto con el jugador, se activa el método `enemigo.atacar_jugador()`.
+
+- Si la salud del enemigo es menor o igual que cero, se genera una recompensa (`CorazonVida`) en sus coordenadas antes de destruirlo.
+
+- Las bombas lanzadas procesan de manera autónoma su temporizador y área de efecto (AOE), y los ataques cuerpo a cuerpo (`EspadaAtaque`) actualizan sus frames de animación en la escena. Finalmente, si el jugador choca con un corazón del suelo, sana su vida.
+
+Finalmente se realiza:
+
+- `self.__check_doors()`: Evalúa si se cumplen los requisitos para desbloquear los accesos a otras habitaciones.
+
+- `self.__update_camera()`: Ajusta la vista para mantener la cámara enfocada y centrada en el jugador.
+
+- `self.player_sprite.update_animation_state()`: Actualiza la máquina de estados gráfica del protagonista (caminar, reposo, ataque).
   
 
 ### Mecánicas de Combate y Armamento
